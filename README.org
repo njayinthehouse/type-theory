@@ -1,0 +1,22 @@
+* Type Theory
+
+  This repository contains my learnings on the topic of Type Theory, tutorialized for the purpose of simplifying the subject for any interested. I'm doing this study with a special emphasis on type systems in programming languages, but I hope to also document some other cool related fields as well - wherever the wind (and my supervising professor) takes me. :)
+
+** Following this Tutorial
+
+   I hope to update this repository with my notes at least once every two weeks with a new topic. If you wish to follow this tutorial, just stay tuned to this repository.
+   
+   For the examples and coding exercises, I will be using Haskell. It will not be necessary to really /learn/ Haskell per se (the language is quite readable and a reader with a basic knowledge of functional programming and mathematics should be able to understand it), but barebones knowledge of the language would help. 
+
+   My notes will be presented as a series of org files. If you're following the tutorial online, this shouldn't pose a problem for you. However, if you want to view an offline copy, I would recommend familiarizing yourself with:
+   - [[https://try.github.io/levels/1/challenges/1][git]] (A version control software)
+   - [[https://www.gnu.org/software/emacs/tour/][emacs]] (A text editor)
+   - [[http://orgmode.org/manual/][org mode]] (A feature of emacs)
+
+   Lastly, feel free to raise issues if you feel a topic has not been sufficiently explained. I would also encourage contributions from interested learners on subtopics and tangential topics of interest. 
+
+** References
+
+   For the purpose of this course, I will be following Types and Programming Languages, by Dr. Benjamin C. Pierce, as my primary reference. Any other references will also be listed below, and at the end of each chapter.
+
+   1. [[https://g.co/kgs/MfXxVe][Types and Programming Languages, Benjamin C. Pierce, 2002]]
