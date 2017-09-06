@@ -1,0 +1,69 @@
+* Introduction
+
+  In computer programming, we have a wide range of formal methods used to assure correctness of our programs. Hoare logic, algebraic specification languages, modal logics and denotational semantics are powerful frameworks which work for this purpose; however, they are quite cumbersome to use and often demand expertise from the programmer. Lightweight frameworks (like model checkers and run-time monitors) allow more modest power in eexchange for easier usability. The most popularly used lightweight formal methods used today are /type systems/.
+
+  *A type system is a tractable syntactic method for proving the absence of certain program behaviors by classifying phrases according to the kinds of values they compute.*
+
+  From a broader perspective, type systems represent a concept that has permeated deeply in the disciplines of mathematics, logic, philosophy and science. Within computer science, two main branches can be identified:
+
+  - The more practical branch, having to do with application in programming languages
+  - The more abstract, pure branch, which focuses on connections between various "pure typed lambda calculi" and varieties of logic, via the Curry-Howard correspondence. [fn:1]
+
+  We will be focusing on the first branch throughout this course.
+
+  Type systems act as a static approximation of how a program can run, thus eliminating certain unwanted runtime behaviors. They can prove the absence of certain undesired behaviors, though not the presence of undesired bbehavior. This means that at times, a type system may restrict a program that might behave well at runtime. Thus, type systems are necessarily /conservative/. The tension between conservativeness and expressivity is a fundamental property of type systems, and programming language design in general.
+
+  It must be noted that while type systems prove the absence of /some/ undesired behavior, it may not capture /all/ undesired behavior. Such behaviors that are caught by the type system are called /runtime type errors/.
+
+  Type systems are also for /modularity/ and /abstraction/. This becomes clear to any users of any statically typed programming language. Examples include classes in Java and C++, structs in C, traits in Scala, custom types in Haskell, etc.
+
+  Typecheckers are often added to the compilers of statically typed languages. The power of the type system often varies from language to language, with trade-offs made between safety and expressivity. Python, for example, is a dynamically typed language which traded the safety[fn:2] of a stronger, static typed system for clear, expressive syntax. This allows Python to be very readable, but also leads to a large number of runtime errors that cannot be caught at compile time. (However, some people argue that static typing in a language does improve the readability of the language, as one can understand better what type a variable holds, what type a function returns, etc.)
+
+  Thus, type systems are useful for:
+
+  1. Detecting Errors
+
+  2. Abstraction
+
+  3. Documentation
+
+  4. Maintaining Language Safety
+
+** Interesting Notes
+
+   - A language need not have a type system to be safe. There are plenty of languages broadly considered safe that do not have a type system. 
+     |--------+-------------------+--------------------|
+     | Safe   | ML, Haskell, Java | Lisp, Scheme, Perl |
+     | Unsafe | C, C++            |                    |
+     |--------+-------------------+--------------------|
+
+   - Rigorous type systems are very powerful tools for error detection. Consider JavaScript, a dynamically checked language widely used for front end web development. In JavaScript, segmentation faults[fn:3] are a programmers nightmare to debug. Enter Elm. Elm is a functional programming language with a very powerful type system. Elm compiles down to JavaScript, so it is being increasingly used in front end development. The foremost boast that often sells Elm to programmers is that, due to its powerful type system, JavaScript generated from Elm has /not segfaulted till date/. Which is pretty cool.
+
+   - Type systems are widely applied in data security, linguistics, biology, etc.
+
+** Tangential Topics of Interest
+
+   - Gandy, 1976 and Hindley, 1997 
+
+   - Russell's /Ramified Theory of Types/ (Whitehead and Russell, 1910)
+
+   - Ramsey's /Simple Theory of Types/ (1925)
+
+   - Martin-Lof's /Constructive Type Theory/ (1973, 1984)
+
+   - Berardi, Terlouw, and Baredregt's /pure type systems/ (Berardi, 1988; Terlouw, 1989; Barendregt, 1992)
+
+   - Curry-Howard correspondence
+
+** External References
+
+   - Types and Programming Languages (2002), Benjamin C. Pierce, Chapter 1
+  
+
+* Footnotes
+
+[fn:1] Curry-Howard correspondence: https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence
+
+[fn:2] Safety of a language is not a formally defined term. Pierce describes a safe language as "a language that makes it impossible for you to shoot yourself in the foot while programming" or more formally as "a language that protects its abstractions".
+
+[fn:3] Segmentation fault: https://en.wikipedia.org/wiki/Segmentation_fault
