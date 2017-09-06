@@ -1,4 +1,4 @@
 * Table of Contents
 
-  1) [[/topics/History/notes.org][*]] History of Type Theory
+  1) [[/topics/Introduction/notes.org][*]] Introduction
   2) [[/topics/Prerequisites/notes.org][*]] Mathematical Prerequisites
