@@ -32,10 +32,12 @@
 ** Interesting Notes
 
    - A language need not have a type system to be safe. There are plenty of languages broadly considered safe that do not have a type system. 
-     |--------+-------------------+--------------------|
-     | Safe   | ML, Haskell, Java | Lisp, Scheme, Perl |
-     | Unsafe | C, C++            |                    |
-     |--------+-------------------+--------------------|
+
+     |----------+--------------------+---------------------|
+     |          | /Statically Typed/ | /Dynamically Typed/ |
+     | /Safe/   | ML, Haskell, Java  | Lisp, Scheme, Perl  |
+     | /Unsafe/ | C, C++             |                     |
+     |----------+--------------------+---------------------|
 
    - Rigorous type systems are very powerful tools for error detection. Consider JavaScript, a dynamically checked language widely used for front end web development. In JavaScript, segmentation faults[fn:3] are a programmers nightmare to debug. Enter Elm. Elm is a functional programming language with a very powerful type system. Elm compiles down to JavaScript, so it is being increasingly used in front end development. The foremost boast that often sells Elm to programmers is that, due to its powerful type system, JavaScript generated from Elm has /not segfaulted till date/. Which is pretty cool.
 
@@ -55,7 +57,7 @@
 
    - Curry-Howard correspondence
 
-** External References
+** Sources
 
    - Types and Programming Languages (2002), Benjamin C. Pierce, Chapter 1
   

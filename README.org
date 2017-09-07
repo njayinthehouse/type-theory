@@ -15,6 +15,23 @@
 
    Lastly, feel free to raise issues if you feel a topic has not been sufficiently explained. I would also encourage contributions from interested learners on subtopics and tangential topics of interest. 
 
+** Prerequisites
+
+   A basic knowledge on the below topics should be enough to understand the content of this course. Most of these topics can also be picked up on the fly, as we do not go into great detail with any of them.
+
+   1. Set Theory and Relations
+      - Sets, Functions and Relations
+      - Reflexivity, Symmetry and Transitivity of Relations
+   
+   2. Sequences
+
+   3. Mathematical Induction
+      - Ordinary Induction
+      - Complete Induction
+      - Lexicographic Induction
+
+   4. Haskell 
+
 ** References
 
    For the purpose of this course, I will be following Types and Programming Languages, by Dr. Benjamin C. Pierce, as my primary reference. Any other references will also be listed below, and at the end of each chapter.
