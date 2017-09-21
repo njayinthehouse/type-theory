@@ -1,0 +1,390 @@
+#+TITLE: Untyped Lambda Calculus
+#+AUTHOR: Nitin John Raj
+
+   Lambda calculus is a formal system in mathematical logic for expressing computation based on function abstraction and application using variable binding and substitution. It is a universal model of computation that can be used to simulate any single-taped Turing machine.
+   
+   Lambda calculus was introduced by Alonzo Church as part of investigations into the Foundations of Mathematics. The original system was proved to be logically inconsistent. However, in 1936, Church isolated and published the portion relevant to computation in what is today called /untyped lambda calculus/.
+
+* Syntax
+  The terms are represented by metavariable t and the values by metavariable v. Furthermore, we also use metavariable a to represent variable identifiers.
+
+  \[t ::= a\ |\ \lambda a.\ t\ |\ t\ t\]
+  \[v ::= \lambda a.\ t\]
+
+
+* Implicit Conventions of Representation
+  1. Left Associativity of Application: \[s \hspace{1mm} t \hspace{1mm} u = s \hspace{1mm} (t \hspace{1mm} u)\]
+  2. Right Extension of Abstractions: \[\lambda x. \hspace{1mm} \lambda y. \hspace{1mm} x \hspace{1mm} y \hspace{1mm} x = \lambda x. \hspace{1mm} (\lambda y. \hspace{1mm} (x \hspace{1mm} y) \hspace{1mm} x)\]
+
+
+* Definition: Free Variable
+  A variable that is independent of an abstraction is called a free variable.
+  
+  If V is the set of valid variable names, we can define the set of free variables in a term as:
+  \[FV: T \to P(V)\]
+  \[FV(x) = \{x\}\]
+  \[FV(\lambda x.\ t) = FV(t) - \{x\}\]
+  \[FV(t_1\ t_2) = FV(t_1) \cup FV(t_2)\]
+
+
+* Definition: Bound Variable
+  A variable that is bound to an abstraction is called a bound variable.
+
+
+* Definition: Combinator
+  A combinator is a term which exists such that no free variables exist within the term.
+
+
+* Definition: Redex
+  In a term \[t_0\], when an abstraction is applied on a term \[t_0'\], then \[t_0\] is called a redex.
+
+
+* Definition: Alpha Conversion
+  Given an abstraction of the form \[t = \lambda x.\ t_0\], \[t\] can be rewritten as \[\lambda y.\ [x \mapsto y]t_0\]. 
+
+
+* Definition: Beta Reduction
+  Given a term of the form \[(\lambda x.\ t_0)\ a\], \[\beta\]-reduction states that the term can be reduced to \[[x \mapsto a]t_0\].
+  We call operations of the form \[[x \mapsto a]t_0\] /substitutions/.
+
+** Definition: Call by Value
+   The outermost redex must be evaluated before inner redexes.
+   Outermost redexes must be evaluated till no more reductions are possible.
+
+** Definition: Call by Name
+   The outermost redex must be evaluated before inner redexes.
+   However, no reductions are performed inside abstractions.
+
+** Definition: Full Beta Reduction
+   There is no precedence in evaluation. No matter which redex is evaluated first, the final answer will be the same.
+
+
+* Programming in Lambda Calculus
+  Strategy of \[\beta\]-reduction: Full \[\beta\]-Reduction
+
+** Identity Combinator
+   \[id = \lambda x. \hspace{1mm} x\]
+
+** Multiple Arguments 
+   - Implemented via higher order functions
+   - Conversion of multiargument functions to higher order functions -> currying
+   eg: \[f(x, y) = t \implies \lambda x. \hspace{1mm} \lambda y. \hspace{1mm} t' = t\]
+
+** Church Boolean Combinator
+   \[tru = \lambda x. \hspace{1mm} \lambda y. \hspace{1mm} x\]
+   \[fls = \lambda x. \hspace{1mm} \lambda y. \hspace{1mm} y\]
+
+** Test Combinator (If Combinator)
+   \[test = \lambda b. \hspace{1mm} \lambda x. \hspace{1mm} \lambda y. \hspace{1mm} b\ x\ y\]
+   eg:
+      \[test \hspace{1mm} tru \hspace{1mm} a \hspace{1mm} b\] 
+      \[= (\lambda b. \hspace{1mm} \lambda x. \hspace{1mm} \lambda y. \hspace{1mm} b \hspace{1mm} x \hspace{1mm} y) \hspace{1mm} tru \hspace{1mm} a \hspace{1mm} b\]
+      \[= (\lambda x. \hspace{1mm} \lambda y. \hspace{1mm} tru \hspace{1mm} x \hspace{1mm} y) \hspace{1mm} a \hspace{1mm} b\]
+      \[= (\lambda y. \hspace{1mm} tru \hspace{1mm} a \hspace{1mm} y) \hspace{1mm} b\]
+      \[= tru \hspace{1mm} a \hspace{1mm} b\]
+      \[= (\lambda t. \hspace{1mm} \lambda f. \hspace{1mm} t) \hspace{1mm} a \hspace{1mm} b\]
+      \[= (\lambda f. \hspace{1mm} a) \hspace{1mm} b\]
+      \[= a\]
+
+** And Combinator
+   \[and = \lambda b. \hspace{1mm} \lambda c. \hspace{1mm} b \hspace{1mm} c \hspace{1mm} fls\] 
+   eg:
+       \[and \hspace{1mm} tru \hspace{1mm} fls\]
+       \[= (\lambda b. \hspace{1mm} \lambda c. \hspace{1mm} b \hspace{1mm} c \hspace{1mm} fls) \hspace{1mm} tru \hspace{1mm} fls\]
+       \[= (\lambda c. \hspace{1mm} tru \hspace{1mm} c \hspace{1mm} fls) \hspace{1mm} fls\]
+       \[= tru \hspace{1mm} fls \hspace{1mm} fls\]
+       \[= (\lambda t. \hspace{1mm} \lambda f. \hspace{1mm} t) \hspace{1mm} fls \hspace{1mm} fls\]
+       \[= (\lambda f. \hspace{1mm} fls) \hspace{1mm} fls\]
+       \[= fls\]
+       
+** Or Combinator 
+   \[or = \lambda b. \hspace{1mm} \lambda c. \hspace{1mm} b \hspace{1mm} tru \hspace{1mm} c\]
+   eg:
+       \[or \hspace{1mm} tru \hspace{1mm} tru\]
+       \[= (\lambda b. \hspace{1mm} \lambda c. \hspace{1mm} b \hspace{1mm} tru \hspace{1mm} c) \hspace{1mm} tru \hspace{1mm} tru\]
+       \[= (\lambda c. \hspace{1mm} tru \hspace{1mm} tru \hspace{1mm} c) \hspace{1mm} tru\]
+       \[= tru \hspace{1mm} tru \hspace{1mm} tru\]
+       \[= tru\]
+
+** Not Combinator 
+   \[not = \lambda b. \hspace{1mm} b fls tru\]
+   eg:
+       \[not \hspace{1mm} fls\]
+       \[= (\lambda b. \hspace{1mm} b \hspace{1mm} fls \hspace{1mm} tru) \hspace{1mm} fls\]
+       \[= fls \hspace{1mm} fls \hspace{1mm} tru\]
+       \[= tru\]
+
+** Pair Combinator
+   \[pair = \lambda f. \hspace{1mm} \lambda s. \hspace{1mm} \lambda b. \hspace{1mm} b \hspace{1mm} f \hspace{1mm} s\]
+   \[fst = \lambda p. \hspace{1mm} p \hspace{1mm} tru\]
+   \[snd = \lambda p. \hspace{1mm} p \hspace{1mm} fls\]
+   eg:
+       \[fst \hspace{1mm} (pair \hspace{1mm} v \hspace{1mm} w)\]
+       \[= fst \hspace{1mm} ((\lambda f. \hspace{1mm} \lambda s. \hspace{1mm} \lambda b. \hspace{1mm} b \hspace{1mm} f \hspace{1mm} s) \hspace{1mm} v \hspace{1mm} w)\]
+       \[= fst \hspace{1mm} ((\lambda s. \hspace{1mm} \lambda b. \hspace{1mm} b \hspace{1mm} v \hspace{1mm} s) \hspace{1mm} w)\]
+       \[= fst \hspace{1mm} (\lambda b. \hspace{1mm} b \hspace{1mm} v \hspace{1mm} w)\]
+       \[= (\lambda p. \hspace{1mm} p \hspace{1mm} tru) (\lambda b. \hspace{1mm} b \hspace{1mm} v \hspace{1mm} w)\]
+       \[= (\lambda b. \hspace{1mm} b \hspace{1mm} v \hspace{1mm} w) \hspace{1mm} tru\]
+       \[= true \hspace{1mm} v \hspace{1mm} w\]
+       \[= v\]
+
+** Church Numerals 
+   \[c_0 = \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} z\]
+   \[c_1 = \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} s \hspace{1mm} z\]
+   \[c_2 = \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} s \hspace{1mm} (s \hspace{1mm} z)\]
+   \[c_3 = \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} s \hspace{1mm} (s \hspace{1mm} (s \hspace{1mm} z))\]
+   ...
+   where 
+   - \[s\] is substituted with the successor function
+   - \[z\] is substituted with 0.
+
+** Successor Function
+   \[scc = \lambda n. \hspace{1mm} \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} s \hspace{1mm} (n \hspace{1mm} s \hspace{1mm} z)\]
+   eg: 
+       \[scc \hspace{1mm} c_0\]
+       \[= (\lambda n. \hspace{1mm} \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} s \hspace{1mm} (n \hspace{1mm} s \hspace{1mm} z)) \hspace{1mm} (\lambda x. \hspace{1mm} \lambda y. \hspace{1mm} y)\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} s \hspace{1mm} ((\lambda x. \hspace{1mm} \lambda y. \hspace{1mm} y) \hspace{1mm} s \hspace{1mm} z)\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} s \hspace{1mm} ((\lambda y. \hspace{1mm} y) \hspace{1mm} z)\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} s \hspace{1mm} z\]
+       \[= c_1\]
+
+** Plus Combinator
+   \[plus = \lambda m. \hspace{1mm} \lambda n. \hspace{1mm} \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} m \hspace{1mm} s \hspace{1mm} (n \hspace{1mm} s \hspace{1mm} z)\]
+   eg: 
+       \[plus \hspace{1mm} c_0 \hspace{1mm} c_1\]
+       \[= (\lambda m. \hspace{1mm} \lambda n. \hspace{1mm} \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} m \hspace{1mm} s \hspace{1mm} (n \hspace{1mm} s \hspace{1mm} z)) \hspace{1mm} c_0 \hspace{1mm} c_1\] 
+       \[= (\lambda n. \hspace{1mm} \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} c_0 \hspace{1mm} s \hspace{1mm} (n \hspace{1mm} s \hspace{1mm} z)) \hspace{1mm} c_1\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} c_0 \hspace{1mm} s \hspace{1mm} (c_1 \hspace{1mm} s \hspace{1mm} z)\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} (\lambda s'. \hspace{1mm} \lambda z'. \hspace{1mm} z') \hspace{1mm} s \hspace{1mm} (c_1 \hspace{1mm} s \hspace{1mm} z)\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} (\lambda z'. \hspace{1mm} z') \hspace{1mm} (c_1 \hspace{1mm} s \hspace{1mm} z)\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} c_1 \hspace{1mm} s \hspace{1mm} z\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} (\lambda s''. \hspace{1mm} \lambda z''. \hspace{1mm} s'' \hspace{1mm} z'') \hspace{1mm} s \hspace{1mm} z\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} (\lambda z''. \hspace{1mm} s \hspace{1mm} z'') \hspace{1mm} z\]
+       \[= \lambda s. \hspace{1mm} \lambda z. \hspace{1mm} s \hspace{1mm} z\]
+       \[= c_1\]
+       
+** Times Combinator
+   \[times = \lambda m.\ \lambda n.\ m\ (plus\ n)\ c_0\]
+   eg:
+       \[times\ c_1\ c_2\]
+       \[= (\lambda m.\ \lambda n.\ m\ (plus\ n)\ c_0)\ c_1\ c_2\]
+       \[= c_1\ (plus\ c_2)\ c_0\]
+       \[= (\lambda s.\ \lambda z.\ s\ z)\ (plus\ c_2)\ c_0\]
+       \[= (plus\ c_2)\ c_0\]
+       \[= plus\ c_2\ c_0\]
+       \[= c_2\]
+
+** Power Combinator
+   \[power = \lambda m.\ \lambda n.\ m\ (times\ n)\ c_1\]
+
+** IsZero Combinator
+   \[iszro = \lambda n. n\ (\lambda x. fls)\ tru\]
+
+** Predecessor Function
+   if x == 0 then 0 else x - 1
+   \[zz = pair\ c_0\ c_0\]
+   \[ss = \lambda p.\ pair\ (snd\ p)\ (plus\ c_1\ (snd\ p))\]
+   \[prd = \lambda m.\ fst\ (m\ ss\ zz)\]
+   eg:
+       \[prd\ c_2\]
+       \[= (\lambda m.\ fst\ (m\ ss\ zz))\ c_2\]
+       \[= fst\ (c_2\ ss\ zz)\]
+       \[= fst\ ((\lambda s.\ \lambda z.\ s\ (s\ z))\ ss\ zz)\]
+       \[= fst\ (ss\ (ss\ zz))\]
+       \[= fst\ ((\lambda p.\ pair\ (snd\ p)\ (plus\ c_1\ (snd\ p))\ (ss\ zz))\]
+       \[= fst\ (pair\ c_0\ c_1)\]
+       \[= c_1\]	    
+
+** Minus Combinator
+   \[minus = \lambda m.\ \lambda n.\ n\ prd\ m\]
+
+   eg:
+       \[minus\ c_2\ c_1\]
+       \[= (\lambda m.\ \lambda n.\ n\ prd\ m)\ c_2\ c_1\]
+       \[= c_1\ (prd\ c_2)\]
+       \[= (\lambda s.\ \lambda z.\ s\ z)\ prd\ c_2\]
+       \[= prd\ c_2\]
+       \[= c_1\]
+   
+** Equal Combinator
+   \[equal = \lambda x.\ \lambda y.\ iszro\ (minus\ x\ y)\]
+
+** TODO List Combinator    
+** Omega Combinator
+   \[\omega = (\lambda x.\ x\ x)\ (\lambda x.\ x\ x)\]
+
+   Note that the omega combinator does not reduce to a normal form. Variations on it are used to implement recursion in lambda calculus.
+
+** Fixed-Point Combinator
+   \[fix = \lambda f.\ (\lambda x.\ f\ (\lambda y.\ x\ x\ y))\ (\lambda x.\ f\ (\lambda y.\ x\ x\ y))\]
+
+
+* Practical Enrichments to Lambda-Calculus
+** Church Booleans vs Primitive Booleans
+   \[primbool = \lambda b.\ true\ false\]
+   \[churchbool = \lambda b.\ if\ b\ then\ tru\ else\ fls\]
+
+** Real Natural Numbers
+   \[realnat = \lambda m.\ m\ (\lambda x.\ succ\ x)\ 0\]
+   where
+   - \[succ\] is a function returning the successor of its argument
+
+** Why do we need to enrich lambda calculus?
+  Consider \[scc\ c_1\] under call-by-value rules.
+
+  \[scc\ c_1\]
+  \[= (\lambda n.\ \lambda s.\ \lambda z.\ s\ (n\ s\ z))\ c_1\]
+  \[= \lambda s.\ \lambda z.\ s\ (c_1\ s\ z)\]
+  \[= \lambda s.\ \lambda z.\ s\ ((\lambda s'.\ \lambda z'.\ s'\ z')\ s\ z)\]
+
+  At this point, by call by value rules, we cannot evaluate the inner redex till the outer one is reduced. 
+  Thus, we do /not/ get \[scc\ c_1 = c_2\].
+
+  However, \[scc\ c_1\] is /behaviorally equivalent/ to \[c_2\].
+
+  \[c_2\ a\ b\]
+  \[= (\lambda s.\ \lambda z.\ s\ (s\ z))\ a\ b\]
+  \[= a\ (a\ b)\]
+
+  \[(scc\ c_1)\ a\ b\]
+  \[= (\lambda s.\ \lambda z.\ s\ ((\lambda s'.\ \lambda z'.\ s'\ z')\ s\ z))\ a\ b\]
+  \[= a\ ((\lambda s'.\ \lambda z'.\ s'\ z')\ a\ b)\]
+  \[= a\ (a\ b)\]
+
+  But for the sake of reducing computations, defining primitives is necessary. For example, consider
+  \[times\ c_2\ c_2 = \lambda s.\ \lambda z.\ (\lambda s'.\ \lambda z'.\ s\ (s\ z))\ s\ ((\lambda s''.\ \lambda z''.\ s''\ (s''\ z''))\ s'\ ((\lambda s''. \lambda z''.\ z'')\ s'\ z'))\ s\ z\]
+
+  One way to check for behavioral equivalence is with the \[equal\] combinator.
+
+  \[equal\ c_2\ (scc\ c_1)\]
+  \[= tru\]
+
+  But it's more direct to convert \[scc\ c_1\] to a primitive number.
+
+  \[realnat\ (scc\ c_1)\]
+  \[= (\lambda m.\ m\ (\lambda x.\ succ\ x)\ 0)\ (scc\ c_1)\]
+  \[= (scc\ c_1)\ (\lambda x.\ succ\ x)\ 0\]
+  \[= (\lambda s.\ \lambda z.\ s\ ((\lambda s'.\ \lambda z'.\ s'\ z')\ s\ z))\ (\lambda x.\ succ\ x)\ 0\]
+  \[= (\lambda x.\ succ\ x)\ ((\lambda s'.\ \lambda z'.\ s'\ z')\ (\lambda x.\ succ\ x)\ 0)\]
+  \[= succ\ ((\lambda s'.\ \lambda z'.\ s'\ z')\ (\lambda x.\ succ\ x)\ 0)\]
+  \[= succ\ ((\lambda x.\ succ\ x)\ 0)\]
+  \[= succ\ (succ\ 0)\]
+  \[= 2\]
+
+  Okay, not true, but it would've been cleaner for an operation like \[times\ c_2\ c_2\], or something even larger.
+  
+
+* Recursion Example: Factorial Combinator
+  \[factorial = fix\ g\],
+  where \[g = \lambda fct.\ \lambda n.\ if\ realeq\ n\ c_0\ then\ c_1\ else\ (times\ n\ (fct\ (prd\ n)))\]
+
+  \[factorial\ c_3\]
+  \[= fix\ g\ c_3\]
+  \[= (\lambda f.\ (\lambda x.\ f\ (\lambda y.\ x\ x\ y))\ (\lambda x.\ f\ (\lambda y.\ x\ x\ y)))\ g\ c_3\]
+  \[= (\lambda x.\ g\ (\lambda y.\ x\ x\ y))\ (\lambda x.\ g\ (\lambda y.\ x\ x\ y))\ c_3\]
+  \[= g\ (\lambda y.\ h\ h\ y)\ c_3\]                                where \[h = \lambda x.\ g\ (\lambda y.\ x\ x\ y)\]
+  \[= if\ realeq\ c_3\ c_0\ then\ c_1\ else\ (times\ c_3\ (r\ (prd\ c_3)))\]        where \[r = \lambda y.\ h\ h\ y\]
+  \[= times\ c_3\ (r\ (prd\ c_3))\]
+  \[= times\ c_3\ (h\ h\ c_2)\]
+  \[= times\ c_3\ (g\ (\lambda y.\ h\ h\ y)\ c_2)\]
+  \[= times\ c_3\ (times\ c_2\ (g\ (\lambda y.\ h\ h\ y)\ c_1))\]
+  \[= times\ c_3\ (times\ c_2\ (times\ c_1\ (g\ (\lambda y.\ h\ h\ y)\ c_0)))\]
+  \[= times\ c_3\ (times\ c_2\ (times\ c_1\ c_1))\]
+  \[= c_6\]
+  
+
+* Trying to Define Operational Semantics of Substitution
+** Attempt 1
+
+   \[[x \mapsto s]x = s\]
+   \[[x \mapsto s]y = y\]
+   \[[x \mapsto s](\lambda y.\ t) = \lambda y.\ [x \mapsto s]t\]
+   \[[x \mapsto s](t_1\ t_2) = ([x \mapsto s]t_1)\ ([x \mapsto s]t_2)\] 
+
+   Problem: \[[x \mapsto y](\lambda x.\ x) = \lambda x.\ y\]
+
+** Attempt 2
+
+   \[[x \mapsto s]x = s\]
+   \[[x \mapsto s]y = y\]
+   \[[x \mapsto s](\lambda y.\ t_1) = \lambda y.\ t_1\], \[y = x\]
+   \[[x \mapsto s](\lambda y.\ t_1) = \lambda y.\ [x \mapsto s]t_1\], \[y \ne x\]
+   \[[x \mapsto s](t_1\ t_2) = ([x \mapsto s]t_1)\ ([x \mapsto s]t_2)\] 
+  
+   Problem: \[[x \mapsto y](\lambda y.\ x) = \lambda y.\ y\]
+   This is called /variable capture/.
+
+** Attempt 3
+
+   \[[x \mapsto s]x = s\]
+   \[[x \mapsto s]y = y\]
+   \[[x \mapsto s](\lambda y.\ t_1) = \lambda y.\ t_1\], \[y = x\]
+   \[[x \mapsto s](\lambda y.\ t_1) = \lambda y.\ [x \mapsto s]t_1\], \[y \ne x\] and \[y \notin FV(s)\]
+   \[[x \mapsto s](t_1\ t_2) = ([x \mapsto s]t_1)\ ([x \mapsto s]t_2)\] 
+
+   Problem: \[[x \mapsto s](\lambda y.\ x\ y)\] does not evaluate.
+
+
+* Operational Semantics of Substitution
+
+  Adopted convention where terms that only differ in the names of bound variables are interchangeable. Here, x, yand z are metavariables for distinct identifiers of variables, and s, t1 and t2 are metavariables for terms.
+  Use \[\alpha\]-conversion to avoid variable capture.
+  \[[x \mapsto s]x = s\]
+  \[[x \mapsto s]y = y\]
+  \[[x \mapsto s](\lambda x.\ t_1) = \lambda x.\ t_1\]
+  \[[x \mapsto s](\lambda y.\ t_1) = [x \mapsto s](\lambda z.\ [y \mapsto z]t_1)\], \[y \in FV(s)\], \[z \notin FV(s)\]
+  \[[x \mapsto s](\lambda y.\ t_1) = \lambda y.\ [x \mapsto s]t_1\], \[y \notin FV(s)\]
+  \[[x \mapsto s](t_1\ t_2) = ([x \mapsto s]t_1)\ ([x \mapsto s]t_2)\] 
+
+
+* Operational Semantics of Lambda Calculus under Call by Value Strategy
+
+  E-APP_1: \[\frac{t_1 \to t_1'}{t_1\ t_2 \to t_1'\ t_2}\]
+
+  E-APP_2: \[\frac{t_2 \to t_2'}{v_1\ t_2 \to v_1\ t_2'}\]
+
+  E-APP_ABS: \[\frac{(\lambda x.\ t_{1,2})\ v_2}{[x \mapsto v_2]t_{1,2}}\]
+
+
+* De Brujin Representation of Lambda Calculus
+  The purpose of De Brujin representation was to avoid the complications of renaming in lambda calculus to prevent inadvertent variable capture in variable substitution.
+  
+  The idea was to replace every variable with the /static distance/ from its lambda abstraction. Thus, if a term is represented by number k, then the (k-1)th enclosing lambda is the one the term is bound to.
+
+
+* Exercises
+** TODO Find another way to define the successor function on Church numerals.
+** TODO Is it possible to define multiplication on Church numerals using the plus combinator?
+** DONE Define a combinator to raise a Church numeral to the power of another Church numeral.
+
+   Answer [[Power Combinator][here]].
+
+** DONE Use prd to define a subtraction function.
+
+   Answer [[Minus Combinator][here]].
+
+** DONE Approximately how many steps of evaluation are required to calculate \[prd\ c_n\]?
+
+   Complexity is O(n).
+
+** DONE Write a combinator that tests two numbers for equality.
+
+   Answer [[Equal Combinator][here]].
+
+** TODO Define a list using lambda calculus.
+** DONE Given \[g = \lambda f.\ \lambda n.\ if\ realeq\ n\ c_0\ then\ c_1\ else\ (times\ n\ (f\ (prd\ n)))\], why do we use primitive booleans rather than Church ones?
+
+   Because realeq is more efficient than the equal combinator on Church numerals.
+
+** TODO Define function churchnat that converts primitive natural numbers into Church numerals.
+** TODO Define a function sum that sums a list of Church numerals.
+** TODO Prove that \[\forall t \in T\ (|FV(t)| \le size(t))\].
+** TODO Write rules for full beta reduction and lazy evaluation
+** TODO Write the rules for lambda calculus in big-step evaluation rules.
+** Write the following in De Brujin notation: \[c_0\], \[c_2\], plus, fix, \[foo = (\lambda x.\ (\lambda x.\ x)) (\lambda x.\ x)\].
+   
+   \[c_0 = \lambda.\ \lambda.\ 0\]
+   \[c_2 = \lambda.\ \lambda.\ 1\ (1\ 0)\]
+   \[plus = \lambda.\ \lambda.\ \lambda.\ \lambda.\ 3\ 1\ (2\ 1\ 0)\]
+   \[fix = \lambda.\ (\lambda.\ 1\ (\lambda.\ (1\ 1)\ 0))\ (\lambda.\ 1\ (\lambda.\ (1\ 1)\ 0))\]
+   \[foo = (\lambda.\ \lambda.\ 0)\ (\lambda.\ 0)\]

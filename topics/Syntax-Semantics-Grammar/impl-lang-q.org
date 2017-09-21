@@ -1,0 +1,126 @@
+#+TITLE: An Implementation of Language Q''
+#+AUTHOR: Nitin John Raj
+
+This chapter focuses on a Haskell implementation of language Q'' from the chapter [[./syntax-semantics-grammar.org][Syntax, Semantics and Grammar]].
+
+* Syntax
+** Terms
+  \[t ::= true\ |\ false\ |\ if\ t\ then\ t\ else\ t\ |\ 0\ |\ succ\ t\ |\ pred\ t\ |\ iszero\ t\ |\ wrong\]
+  
+  We need a type for Term in Haskell.
+
+#+NAME: syntax-terms
+#+BEGIN_SRC haskell
+  data Term = TTrue |
+              TFalse |
+              TIfThenElse Term Term Term |
+              TZero |
+              TSucc Term |
+              TPred Term |
+              TIsZero Term |
+              TWrong
+#+END_SRC
+
+** Values
+  \[n ::= 0\ |\ succ\ n\]
+  \[v ::= true\ |\ false\ |\ n\ |\ wrong\]
+
+  For values, we need a function which takes a function and checks if a term is a value or not. But first, we need a function to tell us if a term is a numerical value. This is because whether succ t is a value is dependent on whether t is is a numerical value or not.
+
+#+NAME: syntax-numerical-values
+#+BEGIN_SRC haskell
+  isNumericalValue :: Term -> Bool
+  isNumericalValue TZero = True
+  isNumericalValue (TSucc t) = isNumericalValue t
+  isNumericalValue t = False
+#+END_SRC
+
+  Now we can easily define a function for all values.
+
+#+NAME: syntax-values
+#+BEGIN_SRC haskell
+  isValue :: Term -> Bool
+  isValue TTrue = True
+  isValue TFalse = True
+  isValue TWrong = True
+  isValue t = isNumericalValue t
+#+END_SRC
+
+* Semantics
+** Bad Booleans and Naturals
+   The definition of the semantics require us to define functions to help check if terms make sense. We define two functions to check this.
+
+#+NAME: badbool
+#+BEGIN_SRC haskell
+  isBadBool :: Term -> Bool
+  isBadBool TTrue = False
+  isBadBool TFalse = False
+  isBadBool t
+    | (isValue t) = True
+    | otherwise = error "Trying to test if a nonvalue is a badbool!"
+#+END_SRC
+
+#+NAME: badnat
+#+BEGIN_SRC haskell
+  isBadNat :: Term -> Bool
+  isBadNat TZero = False
+  isBadNat (TSucc n)
+    | (isValue (TSucc n)) = False
+    | otherwise = error "Trying to test if a nonvalue is a badnat!"
+  isBadNat t
+    | (isValue t) = True
+    | otherwise = error "Trying to test if a nonvalue is a badnat!"
+#+END_SRC
+
+** One-Step Evaluation Rules
+
+   E-IF_TRUE:  \[if\ true\ then\ t_1\ else\ t_2\ \to t_1\]
+
+   E-IF_FALSE: \[if\ false\ then\ t_1\ else\ t_2 \to t_2\]
+
+   E-IF:       \[\frac{t_1 \to t_1'}{if\ t_1\ then\ t_2\ else\ t_3 \to if\ t_1'\ then\ t_2\ else\ t_3}\]
+
+   E-SUCC:        \[\frac{t \to t'}{succ\ t \to succ\ t'}\]
+
+   E-PRED_ZERO:   \[pred\ 0 \to 0\]
+
+   E-PRED_SUCC:   \[pred\ (succ\ n) \to n\]
+
+   E-PRED:        \[\frac{t \to t'}{pred\ t \to pred\ t'}\]
+
+   E-ISZERO_ZERO: \[iszero\ 0 \to true\]
+
+   E-ISZERO_SUCC: \[iszero\ (succ\ n) \to false\]
+     
+   E-ISZERO:      \[\frac{t \to t'}{iszero\ t \to iszero\ t'}\]
+
+   E-IF_WRONG:     \[if\ badbool\ then\ t_1\ else\ t_2 \to wrong\]
+       
+   E-SUCC_WRONG:   \[succ\ badnat \to wrong\]
+
+   E-PRED_WRONG:   \[pred\ badnat \to wrong\]
+
+   E-ISZERO_WRONG: \[iszero\ badnat \to wrong\] 
+
+#+NAME: small-step
+#+BEGIN_SRC haskell
+  eval :: Term -> Term
+  eval (TIfThenElse TTrue t2 _) = eval t2
+  eval (TIfThenElse TFalse _ t3) = eval t3
+  eval (TIfThenElse t1 t2 t3)
+    | (isValue t1) = if (isBadBool t1) then TWrong else error "Stuck!"
+    | otherwise = eval (TIfThenElse (eval t1) t2 t3)
+  eval (TSucc t) =
+    | (isValue t) = if (isBadNat t) then TWrong else (TSucc t)
+    | otherwise = eval (TSucc (eval t))
+  eval (TPred TZero) = TZero
+  eval (TPred (TSucc t)) = eval t
+  eval (TPred t)
+    | (isValue t) = if (isBadNat t1) then TWrong else error "Stuck!"
+    | otherwise = eval (TPred (eval t))
+  eval (TIsZero TZero) = TTrue
+  eval (TIsZero t)
+    | (isValue t) = if (isBadNat t) then TWrong else TFalse
+    | otherwise = eval (TIsZero (eval t))
+#+END_SRC
+* Putting it Together
