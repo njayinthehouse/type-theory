@@ -46,6 +46,7 @@ This chapter focuses on a Haskell implementation of language Q'' from the chapte
   isValue t = isNumericalValue t
 #+END_SRC
 
+
 * Semantics
 ** Bad Booleans and Naturals
    The definition of the semantics require us to define functions to help check if terms make sense. We define two functions to check this.
@@ -123,4 +124,6 @@ This chapter focuses on a Haskell implementation of language Q'' from the chapte
     | (isValue t) = if (isBadNat t) then TWrong else TFalse
     | otherwise = eval (TIsZero (eval t))
 #+END_SRC
+
+
 * Putting it Together

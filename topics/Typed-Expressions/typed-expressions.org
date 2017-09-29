@@ -1,0 +1,131 @@
+#+TITLE: Typed Expressions
+#+AUTHOR: Nitin John Raj
+
+This chapter extends the language we developed in [[../Syntax-Semantics-Grammar/syntax-semantics-grammar.org][Chapter 2: Syntax, Semantics and Grammar]] with a static type system. The type system itself is trivial, but it provides a foundation upon which we'll build throughout this course.
+
+* Revision: The Language
+** Syntax
+*** Terms
+    t is a metavariable representing terms in the language.
+
+    \[t ::= true\ |\ false\ |\ if\ t\ then\ t\ else\ t\ |\ 0\ |\ succ\ t\ |\ pred\ t\ |\ iszero\ t\]
+
+*** Values
+    v is a metavariable representing valid values in the language.
+
+    \[n ::= 0\ |\ succ\ n\]
+    \[v ::= true\ |\ false\ |\ n\]
+
+** Semantics
+*** Evaluation
+    Evaluation of expressions are done using the following rules -
+
+    E-IF_TRUE: \[if\ true\ then\ t_2\ else\ t_3 \to t_2\]
+
+    E-IF_FALSE: \[if\ false\ then\ t_2\ else\ t_3 \to t_3\]
+
+    E-IF: \[\frac{t_1 \to t_1'}{if\ t_1\ then\ t_2\ else\ t_3 \to if\ t_1'\ then\ t_2\ else\ t_3}\]
+
+    E-SUCC: \[\frac{t_0 \to t_0'}{succ\ t_0 \to succ\ t_0'}\]
+
+    E-PRED_ZERO: \[pred\ 0 \to 0\]
+
+    E-PRED_SUCC: \[pred\ (succ\ n_0) \to n_0\]
+
+    E-PRED: \[\frac{t_0 \to t_0'}{pred\ t_0 \to pred\ t_0'}\]
+
+    E-ISZERO_ZERO: \[iszero\ 0 \to true\]
+
+    E-ISZERO_SUCC: \[iszero\ (succ n) \to false\]
+
+    E-ISZERO: \[\frac{t_0 \to t_0'}{iszero\ t_0 \to iszero\ t_0'}\]
+
+
+* Definition: Typing Relation
+  When we say a term t is of type T, we claim that t satisfies all instances of the predefined inference rules that are associated with type T. 
+
+  \[t : T\] or \[t \in T\] are notations expressing that a term t is of type T.
+
+  Also, if \[t \in T\], we can say that t is /well-typed/ or /typable/.
+
+  
+* Extended Language Features
+** Syntax
+*** Datatypes
+    T is a metavariable representing datatypes in the language.
+
+    \[T ::= Bool\ |\ Nat\]
+
+** Semantics    
+*** Type Constraints
+    It represents boolean expressions.
+
+    T-TRUE: \[true \in Bool\]
+
+    T-FALSE: \[false \in Bool\]
+
+    T-IF: \[\frac{t_1, t_2, t_3 \in Bool}{if\ t_1\ then\ t_2\ else\ t_3 \in Bool}\]
+
+    T-ZERO: \[0 \in Nat\]
+
+    T-SUCC: \[\frac{t_0 \in Nat}{succ\ t_0 \in Nat}\]
+
+    T-PRED: \[\frac{t_0 \in Nat}{pred\ t_0 \in Nat}\]
+
+    T-ISZERO: \[\frac{t_0 \in Nat}{iszero\ t_0 \in Bool}\]
+
+
+* Lemma: Inversion of the Typing Relation
+  The lemma is evident from the definition of the typing relation defined for our language.
+
+  1. \[true \in R \implies R = Bool\]
+
+  2. \[false \in R \implies R = Bool\]
+
+  3. \[if\ t_1\ then\ t_2\ else\ t_3 \in R \implies (t_1 \in Bool) \wedge (t_2, t_3 \in R)\]
+
+  4. \[0 \in R \implies R = Nat\]
+
+  5. \[succ\ t_1 \in R \implies (R = Nat) \wedge (t_1 \in Nat)\]
+
+  6. \[pred\ t_1 \in R \implies (R = Nat) \wedge (t_1 \in Nat)\]
+
+  7. \[iszero\ t_1 \in R \implies (R = Bool) \wedge (t_1 \in Nat)\]
+
+
+
+* Theorem: Uniqueness of Types
+  Each term t has exactly one type, and there can only be one distinct derivation tree of this typing for a term.
+
+  Proof:
+  Structural induction on t using the inversion lemma
+
+
+* Safety of a Type System
+  This is the concept which states that /a well-typed term will not get stuck/.
+
+  We prove this in two step:
+
+  1. Progress
+     - /A well typed term is not stuck./
+     - It's either a value or it can be evaluated in one step.
+       
+  2. Preservation
+     - /The result of one-step evaluation on a well-typed term is also well-typed./
+
+
+* Lemma: Canonical Forms
+  1. \[v \in Bool \implies (v = true) \vee (v = false)\]
+  2. \[v \in Nat \implies (v = 0) \vee (v = succ\ n, where\ n \in Nat)\]
+
+
+* Theorem: Progress
+  (Prove by induction over the derivation of \[t : T\])
+
+
+* Theorem: Preservation
+  (Prove by induction over the derivation of \[t : T\])
+       
+
+* Exercises
+** TODO Prove that every subterm of a well-typed term is well typed.

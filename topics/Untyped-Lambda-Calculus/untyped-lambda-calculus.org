@@ -11,7 +11,7 @@
   \[t ::= a\ |\ \lambda a.\ t\ |\ t\ t\]
   \[v ::= \lambda a.\ t\]
 
-
+  
 * Implicit Conventions of Representation
   1. Left Associativity of Application: \[s \hspace{1mm} t \hspace{1mm} u = s \hspace{1mm} (t \hspace{1mm} u)\]
   2. Right Extension of Abstractions: \[\lambda x. \hspace{1mm} \lambda y. \hspace{1mm} x \hspace{1mm} y \hspace{1mm} x = \lambda x. \hspace{1mm} (\lambda y. \hspace{1mm} (x \hspace{1mm} y) \hspace{1mm} x)\]
@@ -60,7 +60,7 @@
 
 
 * Programming in Lambda Calculus
-  Strategy of \[\beta\]-reduction: Full \[\beta\]-Reduction
+  Strategy of beta reduction: full beta reduction
 
 ** Identity Combinator
    \[id = \lambda x. \hspace{1mm} x\]
@@ -125,7 +125,7 @@
        \[= fst \hspace{1mm} (\lambda b. \hspace{1mm} b \hspace{1mm} v \hspace{1mm} w)\]
        \[= (\lambda p. \hspace{1mm} p \hspace{1mm} tru) (\lambda b. \hspace{1mm} b \hspace{1mm} v \hspace{1mm} w)\]
        \[= (\lambda b. \hspace{1mm} b \hspace{1mm} v \hspace{1mm} w) \hspace{1mm} tru\]
-       \[= true \hspace{1mm} v \hspace{1mm} w\]
+       \[= tru \hspace{1mm} v \hspace{1mm} w\]
        \[= v\]
 
 ** Church Numerals 
@@ -209,7 +209,6 @@
 ** Equal Combinator
    \[equal = \lambda x.\ \lambda y.\ iszro\ (minus\ x\ y)\]
 
-** TODO List Combinator    
 ** Omega Combinator
    \[\omega = (\lambda x.\ x\ x)\ (\lambda x.\ x\ x)\]
 
@@ -343,48 +342,265 @@
 
   E-APP_2: \[\frac{t_2 \to t_2'}{v_1\ t_2 \to v_1\ t_2'}\]
 
-  E-APP_ABS: \[\frac{(\lambda x.\ t_{1,2})\ v_2}{[x \mapsto v_2]t_{1,2}}\]
+  E-APP_ABS: \[(\lambda x.\ t_{1,2})\ v_2 \to [x \mapsto v_2]t_{1,2}\]
 
 
 * De Brujin Representation of Lambda Calculus
   The purpose of De Brujin representation was to avoid the complications of renaming in lambda calculus to prevent inadvertent variable capture in variable substitution.
   
-  The idea was to replace every variable with the /static distance/ from its lambda abstraction. Thus, if a term is represented by number k, then the (k-1)th enclosing lambda is the one the term is bound to.
+  The idea was to replace every variable with the /static distance/ from its lambda abstraction. Thus, if a term is represented by number k, then the (k-1)th outer enclosing lambda of the term is the one the term is bound to.
+
+  eg: \[\lambda x.\ \lambda y.\ \lambda z.\ x\ z\ y\ z = \lambda.\ \lambda.\ \lambda.\ 2\ 0\ 1\ 0\]
+
+** Definition: Terms
+   Let T be the family of sets \[\{T_n\ |\ n \in \mathbb{N}\}\] such that:
+
+   1. \[\forall (0 \le k < n)\ (k \in T_n)\]
+
+   2. \[\forall n > 0\ \forall\ t_1 \in T_n\ (\lambda.\ t_1 \in T_{n - 1})\]
+
+   3. \[\forall t_1, t_2 \in T_n\ ((t_1\ t_2) \in T_n)\]
+
+** Definition: n-Terms
+   The elements of \[T_n\] in the above definition of terms are called the n-terms.
+
+** Definition: Naming Context 
+   The above representation of terms does not teach us how to represent free variables. For this purpose, we assign a given number to each free variable. For example, let's assume we assign 5 to free variable x. Then, we can write:
+   - \[x = 5\]
+   - \[\lambda a.\ x = \lambda.\ 6\]
+   - \[\lambda a.\ \lambda b.\ x = \lambda. \lambda. 7\]
+   And so on. 
+
+   The map \[\Gamma\] defining the bindings is called the naming context.
+
+   More formally, \[\Gamma = \{(x_i, i)\ |\ x_i \in V, 0 \leq i \leq n\}\]
+
+** Definition: Shifting
+   The d-place shift of a term t above cutoff c is defined as:
+
+   \[\uparrow^d_c(k) = k\], \[k < c\]
+   \[\uparrow^d_c(k) = k + d\], \[k \ge c\]
+   \[\uparrow^d_c(\lambda.\ t_1) = \lambda.\ \uparrow^d_{c + 1}(t_1)\]
+   \[\uparrow^d_c(t_1\ t_2) = \uparrow^d_c(t_1)\ \uparrow^d_c(t_2)\]
+
+   Also, for convenience, we write \[\uparrow^d_0\] as \[\uparrow^d\].
+
+   We will use shifting in our definition of substitution.
+
+** Definition: Substitution
+   Here, i adn k are metavariables for distinct terms.
+
+   \[[i \mapsto s]i = s\]
+   \[[i \mapsto s]k = k\]
+   \[[i \mapsto s](\lambda.\ t_1) = \lambda.\ [i + 1 \mapsto s]\uparrow^1(t_1)\]
+   \[[i \mapsto s](t_1\ t_2) = ([i \mapsto s]t_1\ [i \mapsto s]t_2)\]
+
+** One-Step Semantics
+
+   E-APP_ABS: \[(\lambda.\ t_{1,2})\ v_2 = \uparrow^{-1}([0 \mapsto \uparrow^1(v_2)]t_{1, 2})\]
+   
+   The other rules are the same as for non de Brujin terms. 
 
 
 * Exercises
-** TODO Find another way to define the successor function on Church numerals.
-** TODO Is it possible to define multiplication on Church numerals using the plus combinator?
-** DONE Define a combinator to raise a Church numeral to the power of another Church numeral.
+** DONE Find another way to define the successor function on Church numerals.
+   \[succ = \lambda n.\ (plus\ n\ c_1)\]
 
+** DONE Is it possible to define multiplication on Church numerals using the plus combinator?
+   Answer [[Times Combinator][here]].
+
+** DONE Define a combinator to raise a Church numeral to the power of another Church numeral.
    Answer [[Power Combinator][here]].
 
 ** DONE Use prd to define a subtraction function.
-
    Answer [[Minus Combinator][here]].
 
 ** DONE Approximately how many steps of evaluation are required to calculate \[prd\ c_n\]?
-
    Complexity is O(n).
 
 ** DONE Write a combinator that tests two numbers for equality.
-
    Answer [[Equal Combinator][here]].
 
-** TODO Define a list using lambda calculus.
-** DONE Given \[g = \lambda f.\ \lambda n.\ if\ realeq\ n\ c_0\ then\ c_1\ else\ (times\ n\ (f\ (prd\ n)))\], why do we use primitive booleans rather than Church ones?
+** DONE Define an OCaml style list using lambda calculus. Include cons, nil, isnil, head and tail operations.
+   In OCaml, and FP languages in general, we usually define lists using the cons operator and nil.
 
+   \[cons: a' \times list[a'] \to list[a']\]
+   \[nil: list[a']\]
+   \[isnil: list[a'] \to boolean\]
+   \[head: list[a'] \to a'\]
+   \[tail: list[a'] \to list[a']\]
+
+   Let's try defining these functions as combinators and see if they work.
+
+   \[cons = \lambda x.\ \lambda xs.\ pair\ fls\ (pair\ x\ xs)\]
+   \[nil = \lambda x.\ \lambda xs.\ pair\ tru\ c_0\]
+   \[isnil = \lambda xs.\ fst\ xs\]
+   \[head = \lambda xs.\ fst\ (snd\ xs)\]
+   \[tail = \lambda xs.\ snd\ (snd\ xs)\]
+
+   Let's try to represent [1, 2] using our combinators.
+
+   \[cons\ 1\ (cons\ 2\ nil)\]
+   \[= (\lambda x.\ \lambda xs.\ pair\ fls\ (pair\ x\ xs))\ 1\ (cons\ 2\ nil)\]
+   \[= pair\ fls\ (pair\ 1\ (cons\ 2\ nil))\]
+   \[= pair\ fls\ (pair\ 1\ (pair fls\ (pair\ 2\ (pair\ tru\ c_0))))\]
+
+   Seems to be a good representation. Let's see if our other combinators work.
+   
+   \[isnil\ (cons\ l\ ls)\]
+   \[= (\lambda xs.\ fst\ xs)\ (cons\ l\ ls)\]
+   \[= fst (cons\ l\ ls)\]
+   \[= fst\ (pair\ fls\ (pair\ l\ ls))\]
+   \[= fls\]
+
+   \[isnil\ nil\]
+   \[= fst (pair\ tru\ c_0)\]
+   \[= tru\]
+
+   \[head\ (cons\ l\ ls)\]
+   \[= l\]
+
+   \[tail\ (cons\ l\ ls)\]
+   \[= ls\]
+
+** DONE Given \[g = \lambda f.\ \lambda n.\ if\ realeq\ n\ c_0\ then\ c_1\ else\ (times\ n\ (f\ (prd\ n)))\], why do we use primitive booleans rather than Church ones?
    Because realeq is more efficient than the equal combinator on Church numerals.
 
-** TODO Define function churchnat that converts primitive natural numbers into Church numerals.
-** TODO Define a function sum that sums a list of Church numerals.
-** TODO Prove that \[\forall t \in T\ (|FV(t)| \le size(t))\].
-** TODO Write rules for full beta reduction and lazy evaluation
-** TODO Write the rules for lambda calculus in big-step evaluation rules.
-** Write the following in De Brujin notation: \[c_0\], \[c_2\], plus, fix, \[foo = (\lambda x.\ (\lambda x.\ x)) (\lambda x.\ x)\].
+** DONE Define function churchnat that converts primitive natural numbers into Church numerals.
+   \[c_n\] in Church numerals is basically defined as the \[n^{th}\] successor of \[c_0\].
+   So, we can define churchnat recursively:
+   \[churchnat\ n = if\ n == 0\ then\ c_0\ else\ scc\ (churchnat\ (pred\ n))\]
+
+   Recursion in lambda calculus is usually done using the Y-combinator.
+   \[fix = \lambda f.\ (\lambda x.\ f\ (\lambda y.\ x\ x\ y))\ (\lambda x.\ f\ (\lambda y.\ x\ x\ y))\]
+
+   Let's define \[g = \lambda f.\ \lambda n.\ if\ isequal\ n\ 0\ then\ c_0\ else\ scc\ (f\ (pred\ n))\]
+   where isequal is a function which compares equality of two primitives.
+
+   If we apply fix to g, we get a combinator which is churchnat.
+   \[churchnat = fix\ g\]
+
+   eg:
+   \[churchnat\ 3\]
+   \[= fix\ g\ 3\]
+   \[= (\lambda f.\ (\lambda x.\ f\ (\lambda y.\ (x\ x)\ y))\ (\lambda x.\ f\ (\lambda y.\ (x\ x)\ y)))\ g\ 3\]
+   \[= (\lambda x.\ g\ (\lambda y.\ (x\ x)\ y))\ (\lambda x.\ g\ (\lambda y.\ (x\ x)\ y))\ 3\]
+   \[\{let\ h = \lambda x.\ g\ (\lambda y.\ (x\ x)\ y)\}\]
+   \[= g\ (\lambda y.\ (h\ h)\ y)\ 3\]
+   \[\{let\ r = \lambda y.\ (h\ h)\ y\}\]
+   \[= g\ r\ 3\]
+   \[= (\lambda f.\ \lambda n.\ if\ isequal\ n\ 0\ then\ c_0\ else\ scc\ (f\ (pred\ n)))\ r\ 3\]
+   \[= if\ isequal\ 3\ 0\ then\ c_0\ else\ scc\ (r\ (pred\ 3))\]
+   \[= scc\ ((\lambda y.\ (h\ h)\ y)\ 2)\]
+   \[= scc\ ((h\ h)\ 2)\]
+   \[= scc\ (((\lambda x.\ g\ (\lambda y.\ (x\ x)\ y))\ h)\ 2)\]
+   \[= scc\ (g\ r\ 2)\]
+   \[= scc\ (scc\ (g\ r\ 1))\]
+   \[= scc\ (scc\ (scc\ (g\ r\ 0)))\]
+   \[= scc\ (scc\ (scc\ (if\ isequal\ 0\ 0\ then\ c_0\ else\ scc\ (r\ (pred\ 0)))))\]
+   \[= scc\ (scc\ (scc\ c_0))\]
+   \[= c_3\]
+
+** DONE Define a function sum that sums a list of Church numerals.
+   For the list, we use the list combinators we defined in one of the previous questions.
+
+   \[cons = \lambda x.\ \lambda xs.\ pair\ fls\ (pair\ x\ xs)\]
+   \[nil = \lambda x.\ \lambda xs.\ pair\ tru\ c_0\]
+   \[isnil = \lambda xs.\ fst\ xs\]
+   \[head = \lambda xs.\ fst\ (snd\ xs)\]
+   \[tail = \lambda xs.\ snd\ (snd\ xs)\]
+
+   Let's define sum as a function.
+
+   \[sum: list[churchNum] \to churchNum\]
+   \[sum\ ls = if\ ls\ is\ nil\ then\ c_0\ else\ head\ ls + sum\ (tail\ ls)\]
+
+   For recursion, we use the Y-combinator.
+
+   \[fix = \lambda f.\ (\lambda x.\ f\ (\lambda y.\ (x\ x)\ y))\ (\lambda x.\ f\ (\lambda y.\ (x\ x)\ y))\]
    
+   Defining sum using the Y-combinator:
+
+   \[g = (\lambda f.\ \lambda xs.\ if\ isnil\ xs\ then\ c_0\ else\ plus\ (head\ xs)\ (sum\ (tail\ xs)))\]
+   \[sum\ ls = fix\ g\]
+
+   And we're done!   
+   
+** TODO Write rules for full beta reduction and lazy evaluation.
+   *Full Beta Reduction:*
+
+   E-APP_1: \[\frac{t_1 \to t_1'}{t_1\ t_2 \to t_1'\ t_2}\]
+
+   E-APP_2: \[\frac{t_2 \to t_2'}{t_1\ t_2 \to t_1\ t_2'}\]
+
+   E-APP_ABS_1: \[(\lambda x.\ t_{1,2})\ t_2 \to [x \mapsto t_2]t_{1,2}\]
+
+   E-ABS: \[\frac{t_{1,2} \to t_{1,2}'}{\lambda x.\ t_{1,2} \to \lambda x.\ t_{1,2}'}\]
+
+   *Lazy Evaluation:*
+
+   
+
+** DONE Write the rules for lambda calculus in big-step evaluation rules.
+
+   B-APP_1: \[\frac{t_1 \Downarrow v_1}{t_1\ t_2 \Downarrow v_1\ t_2}\]
+
+   B-APP_2: \[\frac{t_2 \Downarrow v_2}{v_1\ t_2 \Downarrow v_1\ v_2}\]
+
+   B-APP_ABS: \[(\lambda x.\ t_{1,2})\ v_2 \Downarrow [x \mapsto v_2]t_{1,2}\]
+
+** DONE Write the following in De Brujin notation: \[c_0\], \[c_2\], plus, fix, \[foo = (\lambda x.\ (\lambda x.\ x)) (\lambda x.\ x)\].
    \[c_0 = \lambda.\ \lambda.\ 0\]
    \[c_2 = \lambda.\ \lambda.\ 1\ (1\ 0)\]
    \[plus = \lambda.\ \lambda.\ \lambda.\ \lambda.\ 3\ 1\ (2\ 1\ 0)\]
    \[fix = \lambda.\ (\lambda.\ 1\ (\lambda.\ (1\ 1)\ 0))\ (\lambda.\ 1\ (\lambda.\ (1\ 1)\ 0))\]
    \[foo = (\lambda.\ \lambda.\ 0)\ (\lambda.\ 0)\]
+
+** TODO Define a function \[removenames_\Gamma(t)\] that takes a term t such that \[FV(t) \in dom(\Gamma)\] and returns corresponding nameless term.
+   See [[./impl-de-Brujin][my implementation of de Brujin untyped lambda calculus]].
+
+** TODO Define a function \[restorenames_\Gamma(t)\] that takes a de Brujin term t that produces an ordinary term from it.
+   See [[./impl-de-Brujin][my implementation of de Brujin untyped lambda calculus]].
+
+** DONE Evaluate:
+*** \[\uparrow^2(\lambda.\ \lambda.\ 1\ (0\ 2))\]
+     \[= \lambda.\ \uparrow^2_1(\lambda.\ 1\ (0\ 2))\]
+     \[= \lambda.\ \lambda.\ \uparrow^2_2(1\ (0\ 2))\]
+     \[= \lambda.\ \lambda.\ \uparrow^2_2(1)\ \uparrow^2_2(0\ 2)\]
+     \[= \lambda.\ \lambda.\ \uparrow^2_2(1)\ (\uparrow^2_2(0)\ \uparrow^2_2(2))\]
+     \[= \lambda.\ \lambda.\ 1\ (0\ 4)\]
+
+*** \[\uparrow^2(\lambda.\ 0\ 1\ (\lambda.\ 0\ 1\ 2))\]
+    \[= \lambda.\ \uparrow^2_1(0\ 1\ (\lambda.\ 0\ 1\ 2))\]
+    \[= \lambda.\ \uparrow^2_1(0)\ \uparrow^2_1(1)\ \uparrow^2_1(\lambda.\ 0\ 1\ 2)\]
+    \[= \lambda.\ 0\ 3\ (\lambda.\ \uparrow^2_2(0\ 1\ 2))\]
+    \[= \lambda.\ 0\ 3\ (\lambda.\ \uparrow^2_2(0)\ \uparrow^2_2(1)\ \uparrow^2_2(2))\]
+    \[= \lambda.\ 0\ 3\ (\lambda.\ 0\ 1\ 4)\]
+    
+** DONE Consider \[\Gamma = \{(a, 0), (b, 1)\}\]. Convert the following to nameless terms, evaluate them and check if it matches the named terms definition of substitution:
+*** \[[b \mapsto a](b\ (\lambda x.\ \lambda y.\ b))\]
+    \[= [1 \mapsto 0](1\ (\lambda.\ \lambda.\ 3))\]
+    \[= ([1 \mapsto 0]1\ [1 \mapsto 0](\lambda.\ \lambda.\ 3))\]
+    \[= (0\ (\lambda.\ [1 + 1 \mapsto \uparrow^1(0)](\lambda.\ 3)))\]
+    \[= (0\ (\lambda.\ \lambda.\ [2 + 1 \mapsto \uparrow^1(1)]3))\]
+    \[= (0\ (\lambda.\ \lambda.\ [3 \mapsto 2]3))\]
+    \[= (0\ (\lambda.\ \lambda\ 2))\]
+
+*** \[[b \mapsto a\ (\lambda z.\ a)](b\ (\lambda x.\ b))\]
+    \[= [1 \mapsto 0\ (\lambda.\ 1)](1\ (\lambda.\ 2))\]
+    \[= ([1 \mapsto 0\ (\lambda.\ 1)]1\ [1 \mapsto 0\ (\lambda.\ 1)](\lambda.\ 2)])\]
+    \[= (0\ (\lambda.\ 1)\ (\lambda.\ [1+1 \mapsto \uparrow^1(0\ (\lambda.\ 1))]2))\]
+    \[=(0\ (\lambda.\ 1)\ (\lambda.\ [2 \mapsto 1\ (\lambda.\ 2)]2))\]
+    \[= (0\ (\lambda.\ 1)\ (\lambda.\ 1\ (\lambda.\ 2)))\]
+
+*** \[[b \mapsto a](\lambda b.\ b\ a)\]
+    \[= [1 \mapsto 0](\lambda.\ 0\ 1)\]
+    \[= \lambda.\ [(1 + 1) \mapsto \uparrow^1(0)](0\ 1)\]
+    \[= \lambda.\ [2 \mapsto 1]0\ [2 \mapsto 1]1\]
+    \[= \lambda.\ 0\ 1\]
+
+*** \[[b \mapsto a](\lambda a.\ b\ a)\]
+    \[= [1 \mapsto 0](\lambda.\ 2\ 0)\]
+    \[= \lambda.\ [2 \mapsto 1]2\ [2 \mapsto 1]0\]
+    \[= \lambda.\ 1\ 0\]
+
