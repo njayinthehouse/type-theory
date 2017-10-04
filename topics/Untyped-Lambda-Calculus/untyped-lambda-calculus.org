@@ -540,7 +540,6 @@
    *Lazy Evaluation:*
 
    
-
 ** DONE Write the rules for lambda calculus in big-step evaluation rules.
 
    B-APP_1: \[\frac{t_1 \Downarrow v_1}{t_1\ t_2 \Downarrow v_1\ t_2}\]

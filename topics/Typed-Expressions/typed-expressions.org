@@ -56,23 +56,23 @@ This chapter extends the language we developed in [[../Syntax-Semantics-Grammar/
 
     \[T ::= Bool\ |\ Nat\]
 
-** Semantics    
+** Semantics
 *** Type Constraints
     It represents boolean expressions.
 
-    T-TRUE: \[true \in Bool\]
+    T-TRUE: \[true: Bool\]
 
-    T-FALSE: \[false \in Bool\]
+    T-FALSE: \[false: Bool\]
 
-    T-IF: \[\frac{t_1, t_2, t_3 \in Bool}{if\ t_1\ then\ t_2\ else\ t_3 \in Bool}\]
+    T-IF: \[\frac{t_1, t_2, t_3: Bool}{if\ t_1\ then\ t_2\ else\ t_3: Bool}\]
 
-    T-ZERO: \[0 \in Nat\]
+    T-ZERO: \[0: Nat\]
 
-    T-SUCC: \[\frac{t_0 \in Nat}{succ\ t_0 \in Nat}\]
+    T-SUCC: \[\frac{t_0: Nat}{succ\ t_0: Nat}\]
 
-    T-PRED: \[\frac{t_0 \in Nat}{pred\ t_0 \in Nat}\]
+    T-PRED: \[\frac{t_0: Nat}{pred\ t_0: Nat}\]
 
-    T-ISZERO: \[\frac{t_0 \in Nat}{iszero\ t_0 \in Bool}\]
+    T-ISZERO: \[\frac{t_0: Nat}{iszero\ t_0: Bool}\]
 
 
 * Lemma: Inversion of the Typing Relation
@@ -91,7 +91,6 @@ This chapter extends the language we developed in [[../Syntax-Semantics-Grammar/
   6. \[pred\ t_1 \in R \implies (R = Nat) \wedge (t_1 \in Nat)\]
 
   7. \[iszero\ t_1 \in R \implies (R = Bool) \wedge (t_1 \in Nat)\]
-
 
 
 * Theorem: Uniqueness of Types
