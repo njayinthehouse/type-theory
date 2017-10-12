@@ -538,7 +538,6 @@
    E-ABS: \[\frac{t_{1,2} \to t_{1,2}'}{\lambda x.\ t_{1,2} \to \lambda x.\ t_{1,2}'}\]
 
    *Lazy Evaluation:*
-
    
 ** DONE Write the rules for lambda calculus in big-step evaluation rules.
 
