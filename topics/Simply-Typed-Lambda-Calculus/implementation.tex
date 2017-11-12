@@ -1,0 +1,558 @@
+% Created 2017-11-05 Sun 20:26
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\author{Nitin John Raj}
+\date{\today}
+\title{Implementation of Simply Typed Lambda Calculus}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs 24.5.1 (Org mode 8.2.10)}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+In this chapter, we will attempt to build a system for simply typed lambda calculus as defined in \href{../typed-lambda-calculus.org}{Simply Typed Lambda Calculus}. We will be using the de Brujin method of evaluation. We shall only be dealing with abstract syntax here - the parser from concrete to abstract syntax is beyond the scope of this chapter, and teaches no necessary concepts with respect to simply typed lambda calculus.
+
+\section{Abstract Syntax}
+\label{sec-1}
+\subsection{Types}
+\label{sec-1-1}
+\subsubsection{Documentation}
+\label{sec-1-1-1}
+Our model of lambda calculus allows us to use types. We explicitly annotate our variables with these types.
+
+The types we shall support in this model are booleans and integers, and functions.
+
+\subsubsection{Code}
+\label{sec-1-1-2}
+\begin{verbatim}
+data Type = Boolean
+	  | Any
+	  | Function Type Type
+	  deriving (Eq, Show)
+\end{verbatim}
+
+\subsection{Standard Lambda Calculus}
+\label{sec-1-2}
+\subsubsection{Documentation}
+\label{sec-1-2-1}
+The terms of standard lambda calculus are:
+\begin{itemize}
+\item variables
+\item abstractions
+\item applications
+\end{itemize}
+
+Furthermore, we also enrich our model with primitive booleans and expressions:
+\begin{itemize}
+\item true
+\item false
+\item if \_ then \_ else \_
+\end{itemize}
+
+Valid variable identifiers can be represented by strings. 
+
+\subsubsection{Code}
+\label{sec-1-2-2}
+\begin{verbatim}
+type Identifier = String
+
+data Term = Var Identifier
+	  | Abs Identifier Type Term
+	  | App Term Term
+	  | PrimTrue
+	  | PrimFalse
+	  | IfThenElse Term Term Term
+	  deriving (Eq, Show)
+\end{verbatim}
+
+\subsection{De Brujin Representation}
+\label{sec-1-3}
+\subsubsection{Documentation}
+\label{sec-1-3-1}
+De Brujin terms are an alternate representation of lambda calculus. Here, the variable identifiers are replaced with the \emph{static distance} from their lambda binding. However, we shall preserve the identifier bound to each abstraction in this AST, as it makes evaluation easier.
+
+\subsubsection{Code}
+\label{sec-1-3-2}
+\begin{verbatim}
+data DeBrujinTerm = Index Int 
+		  | Lambda Identifier Type DeBrujinTerm
+		  | Application DeBrujinTerm DeBrujinTerm
+		  | True'
+		  | False'
+		  | If DeBrujinTerm DeBrujinTerm DeBrujinTerm
+		  deriving (Eq, Show)
+\end{verbatim}
+
+
+\section{Free Variables}
+\label{sec-2}
+\subsection{Documentation}
+\label{sec-2-1}
+A free variable is one that is not bound to an abstraction. Here, we define a function to find free variables in our standard AST.
+
+\subsection{Code}
+\label{sec-2-2}
+\begin{verbatim}
+fv :: Term -> [Identifier]
+fv (Var x) = [x]
+fv (Abs x q t) = (fv t) \\ [x]
+fv (App s t) = (fv s) `union` (fv t)
+fv (IfThenElse r s t) = (fv r) `union` (fv s) `union` (fv t)
+fv _ = []
+\end{verbatim}
+
+
+\section{Context}
+\label{sec-3}
+\subsection{Documentation}
+\label{sec-3-1}
+The context helps map variables to data about the variables. We will be using the context to map identifiers to their corresponding de Brujin index, and to the type they're annotated with.
+
+On the context, we define certain functions:
+
+\begin{itemize}
+\item \[typeOf: Int \times Context \to Type\]
+\item \[indexOf: String \times Context \to Int\]
+\end{itemize}
+
+\subsection{Code}
+\label{sec-3-2}
+\begin{verbatim}
+type Context = [(Identifier, Type)]
+
+indexOf :: Identifier -> Context -> Int
+indexOf x context = case (findIndex (\y -> fst y == x) context) of
+		      Just n -> n
+		      Nothing -> error "Identifier does not exist in context!"
+
+getType :: Int -> Context -> Type
+getType i context = snd (context !! i)
+
+getIdentifier :: Int -> Context -> Identifier
+getIdentifier i context = fst (context !! i)
+\end{verbatim}
+
+
+\section{Parser}
+\label{sec-4}
+\subsection{Documentation}
+\label{sec-4-1}
+For our implementation, we first need a parser from our standard AST model to our de Brujin terms. 
+
+\subsection{Code}
+\label{sec-4-2}
+\begin{verbatim}
+convert :: Term -> (DeBrujinTerm, Context)
+convert x =
+  let
+    aux :: Context -> Term -> DeBrujinTerm
+    aux context (Var x) = Index (indexOf x context)
+    aux context (Abs x q t) = Lambda x q (aux ((x, q) : context) t)
+    aux context (App s t) = let convert' = aux context
+			    in Application (convert' s) (convert' t)
+    aux _ PrimTrue = True'
+    aux _ PrimFalse = False'
+    aux context (IfThenElse r s t) = let convert' = aux context
+				     in If (convert' r) (convert' s) (convert' t)
+
+    buildContext :: Term -> Context
+    buildContext x = map (\x -> (x, Any)) (fv x)
+
+    context :: Context
+    context = buildContext x
+  in
+    (aux context x, context)
+\end{verbatim}
+
+
+\section{Deparsing}
+\label{sec-5}
+\subsection{Documentation}
+\label{sec-5-1}
+We require a parser to convert our standard AST to our de Brujin AST for evaluation. Once evaluation is done, we would like to deparse the de Brujin AST back to the standard one.
+
+\subsection{Code}
+\label{sec-5-2}
+\begin{verbatim}
+convertBack :: Context -> DeBrujinTerm -> Term
+convertBack context (Index k) = Var (getIdentifier k context)
+convertBack context (Lambda x q t) = Abs x q (convertBack ((x, q) : context) t)
+convertBack context (Application s t) = App (convertBack context s) (convertBack context t)
+convertBack _ True' = PrimTrue
+convertBack _ False' = PrimFalse
+convertBack context (If t1 t2 t3) = let convert' = convertBack context
+				    in IfThenElse (convert' t1) (convert' t2) (convert' t3)
+\end{verbatim}
+
+
+\section{Shifting}
+\label{sec-6}
+\subsection{Documentation}
+\label{sec-6-1}
+Shifting is an operation on de Brujin terms that is used in beta reduction. The d-place shift at a cutoff of c is defined as follows:
+
+\[\uparrow^d_c(k) = k\], \[k < c\]
+\[\uparrow^d_c(k) = k + d\], \[k \ge c\]
+\[\uparrow^d_c(\lambda.\ t_1) = \lambda.\ \uparrow^d_{c + 1}(t_1)\]
+\[\uparrow^d_c(t_1\ t_2) = \uparrow^d_c(t_1)\ \uparrow^d_c(t_2)\]
+
+\subsection{Code}
+\label{sec-6-2}
+\begin{verbatim}
+(-^-) :: Int -> Int -> (DeBrujinTerm -> DeBrujinTerm)
+(d -^- c) (Index k)
+  | k < c = Index k
+  | otherwise = Index (k + d)
+(d -^- c) (Lambda x q t) = Lambda x q ((d -^- (c + 1)) t)
+(d -^- c) (Application s t) = let shift = d -^- c
+			      in Application (shift s) (shift t)
+(_ -^- _) literal = literal
+\end{verbatim}
+
+
+\section{Substitution}
+\label{sec-7}
+\subsection{Documentation}
+\label{sec-7-1}
+Substitution is defined as follows:
+
+\[[i \mapsto s]i = s\]
+\[[i \mapsto s]k = k\]
+\[[i \mapsto s](\lambda.\ t_1) = \lambda.\ [i + 1 \mapsto s]\uparrow^1(t_1)\]
+\[[i \mapsto s](t_1\ t_2) = ([i \mapsto s]t_1\ [i \mapsto s]t_2)\]
+
+\subsection{Code}
+\label{sec-7-2}
+\begin{verbatim}
+(-:>) :: Int -> DeBrujinTerm -> (DeBrujinTerm -> DeBrujinTerm)
+(i -:> s) (Index k)
+  | i == k = s
+  | otherwise = Index k
+(i -:> s) (Lambda x q t) = Lambda x q (((i + 1) -:> s) ((1-^-1) t))
+(i -:> s) (Application r t) = Application ((i -:> s) r) ((i -:> s) t)
+(_ -:> _) literal = literal
+\end{verbatim}
+
+
+\section{Values}
+\label{sec-8}
+\subsection{Documentation}
+\label{sec-8-1}
+We need to define values in our interpreter. Values include:
+\begin{itemize}
+\item abstractions
+\item variables
+\item literals
+\item applications where all terms are values and where the first term is not an abstraction
+\end{itemize}
+
+\subsection{Code}
+\label{sec-8-2}
+\begin{verbatim}
+isValue :: DeBrujinTerm -> Bool
+isValue (Application (Lambda _ _ _) _) = False
+isValue (Application x y) = (isValue x) && (isValue y)
+isValue (If _ _ _) = False
+isValue _ = True
+\end{verbatim}
+
+
+\section{Typechecking}
+\label{sec-9}
+\subsection{Documentation}
+\label{sec-9-1}
+Typechecking is done using a direct application of the inversion theorem.
+
+\begin{itemize}
+\item \[\Gamma \vdash x: T \implies x:T \in \Gamma\]
+
+\item \[\Gamma \vdash (\lambda x:T_1.\ t): R \implies \exists T_2(R = T_1 \to T_2 \iff \Gamma, x:T_1 \vdash t:T_2)\]
+
+\item \[\Gamma \vdash (t_1\ t_2): R \implies \exists T_1((\Gamma \vdash t_1: T_1 \to R) \wedge (\Gamma \vdash t_2: T_2))\]
+
+\item \[\Gamma \vdash true: R \implies R = Bool\]
+
+\item \[\Gamma \vdash false: R \implies R = Bool\]
+
+\item \[\Gamma \vdash (if\ t_1\ then\ t_2\ else\ t_3): R \implies \Gamma \vdash t_1: Bool, \Gamma \vdash t_2: R, \Gamma \vdash t_3: R\]
+\end{itemize}
+
+\subsection{Code}
+\label{sec-9-2}
+\begin{verbatim}
+typeOf :: Term -> Maybe Type
+typeOf term =
+  let
+    aux :: DeBrujinTerm -> Context -> Maybe Type
+    aux (Index k) context = Just (getType k context)
+    aux (Lambda x q t) context =
+      let
+	context' = (x, q) : context
+	q' = aux t context'
+      in
+	case q' of
+	  Nothing -> Nothing
+	  Just r -> Function q r
+    aux (Application t1 t2) context =
+      let
+	q1' = aux t1 context
+	q2' = aux t2 context
+      in
+	case (q1', q2') of
+	  (Nothing, _) -> Nothing
+	  (_, Nothing) -> Nothing
+	  (Just (Function q11 q12), Just q2) -> if (q11 == q2)
+						 then Just q12
+						 else Nothing
+	  (_, _) -> Nothing
+    aux True' _ = Just Boolean
+    aux False' _ = Just Boolean
+    aux (If t1 t2 t3) context=
+      case (aux t1 context) of
+	Just q1 -> if (q1 == Boolean)
+		   then case (aux t2 context, aux t3 context) of
+			  (Just q2, Just q3) -> if (q2 == q3)
+						then Just q2
+						else Nothing
+			  (_, _) -> Nothing
+		   else Nothing
+	Nothing -> Nothing
+
+    (t, context) = convert term
+  in
+    aux t context
+\end{verbatim}
+
+
+\section{Beta Reduction}
+\label{sec-10}
+\subsection{Documentation}
+\label{sec-10-1}
+Beta reduction by call-by-value strategy follows the following rules:
+
+E-APP$_{\text{1}}$: \[\frac{t_1 \to v_1}{t_1\ t_2 \to v_1\ t_2}\]
+
+E-APP$_{\text{2}}$: \[\frac{t_2 \to v_2}{v_1\ t_2 \to v_1\ v_2}\]
+
+E-APP$_{\text{ABS}}$: \[(\lambda.\ t_{1,2})\ v_2 = \uparrow^{-1}([0 \mapsto \uparrow^1(v_2)]t_{1, 2})\]
+
+\subsection{Code}
+\label{sec-10-2}
+\begin{verbatim}
+evaluate :: Term -> (Term, Type)
+evaluate term =
+  let
+    aux :: DeBrujinTerm -> DeBrujinTerm
+    aux (Application s t)
+      | not (isValue s) = Application (aux s) t
+      | not (isValue t) = Application s (aux t)
+      | otherwise = case s of
+		      Lambda x q e -> ((-1)-^-0) ((0 -:> ((1-^-0) t)) e)
+		      _ -> Application s t
+    aux (If r s t)
+      | predicate == True' = aux s
+      | predicate == False' = aux s
+      | otherwise = error "Non-boolean in test position!"
+      where predicate = aux r
+    aux x = x
+
+    (t, context) = convert term
+    q' = typeOf term
+  in
+    case q' of
+      Just q -> (q, aux t)
+      Nothing -> error "Not a well typed term!"
+\end{verbatim}
+
+
+\section{Putting it Together}
+\label{sec-11}
+\begin{verbatim}
+import Data.List
+\end{verbatim}
+
+\begin{verbatim}
+import Data.List
+
+data Type = Boolean
+	  | Any
+	  | Function Type Type
+	  deriving (Eq, Show)
+
+type Identifier = String
+
+data Term = Var Identifier
+	  | Abs Identifier Type Term
+	  | App Term Term
+	  | PrimTrue
+	  | PrimFalse
+	  | IfThenElse Term Term Term
+	  deriving (Eq, Show)
+
+data DeBrujinTerm = Index Int 
+		  | Lambda Identifier Type DeBrujinTerm
+		  | Application DeBrujinTerm DeBrujinTerm
+		  | True'
+		  | False'
+		  | If DeBrujinTerm DeBrujinTerm DeBrujinTerm
+		  deriving (Eq, Show)
+
+fv :: Term -> [Identifier]
+fv (Var x) = [x]
+fv (Abs x q t) = (fv t) \\ [x]
+fv (App s t) = (fv s) `union` (fv t)
+fv (IfThenElse r s t) = (fv r) `union` (fv s) `union` (fv t)
+fv _ = []
+
+type Context = [(Identifier, Type)]
+
+indexOf :: Identifier -> Context -> Int
+indexOf x context = case (findIndex (\y -> fst y == x) context) of
+		      Just n -> n
+		      Nothing -> error "Identifier does not exist in context!"
+
+getType :: Int -> Context -> Type
+getType i context = snd (context !! i)
+
+getIdentifier :: Int -> Context -> Identifier
+getIdentifier i context = fst (context !! i)
+
+convert :: Term -> (DeBrujinTerm, Context)
+convert x =
+  let
+    aux :: Context -> Term -> DeBrujinTerm
+    aux context (Var x) = Index (indexOf x context)
+    aux context (Abs x q t) = Lambda x q (aux ((x, q) : context) t)
+    aux context (App s t) = let convert' = aux context
+			    in Application (convert' s) (convert' t)
+    aux _ PrimTrue = True'
+    aux _ PrimFalse = False'
+    aux context (IfThenElse r s t) = let convert' = aux context
+				     in If (convert' r) (convert' s) (convert' t)
+
+    buildContext :: Term -> Context
+    buildContext x = map (\x -> (x, Any)) (fv x)
+
+    context :: Context
+    context = buildContext x
+  in
+    (aux context x, context)
+
+convertBack :: Context -> DeBrujinTerm -> Term
+convertBack context (Index k) = Var (getIdentifier k context)
+convertBack context (Lambda x q t) = Abs x q (convertBack ((x, q) : context) t)
+convertBack context (Application s t) = App (convertBack context s) (convertBack context t)
+convertBack _ True' = PrimTrue
+convertBack _ False' = PrimFalse
+convertBack context (If t1 t2 t3) = let convert' = convertBack context
+				    in IfThenElse (convert' t1) (convert' t2) (convert' t3)
+
+(-^-) :: Int -> Int -> (DeBrujinTerm -> DeBrujinTerm)
+(d -^- c) (Index k)
+  | k < c = Index k
+  | otherwise = Index (k + d)
+(d -^- c) (Lambda x q t) = Lambda x q ((d -^- (c + 1)) t)
+(d -^- c) (Application s t) = let shift = d -^- c
+			      in Application (shift s) (shift t)
+(_ -^- _) literal = literal
+
+(-:>) :: Int -> DeBrujinTerm -> (DeBrujinTerm -> DeBrujinTerm)
+(i -:> s) (Index k)
+  | i == k = s
+  | otherwise = Index k
+(i -:> s) (Lambda x q t) = Lambda x q (((i + 1) -:> s) ((1-^-1) t))
+(i -:> s) (Application r t) = Application ((i -:> s) r) ((i -:> s) t)
+(_ -:> _) literal = literal
+
+isValue :: DeBrujinTerm -> Bool
+isValue (Application (Lambda _ _ _) _) = False
+isValue (Application x y) = (isValue x) && (isValue y)
+isValue (If _ _ _) = False
+isValue _ = True
+
+typeOf :: Term -> Maybe Type
+typeOf term =
+  let
+    aux :: DeBrujinTerm -> Context -> Maybe Type
+    aux (Index k) context = Just (getType k context)
+    aux (Lambda x q t) context =
+      let
+	context' = (x, q) : context
+	q' = aux t context'
+      in
+	case q' of
+	  Nothing -> Nothing
+	  Just r -> Function q r
+    aux (Application t1 t2) context =
+      let
+	q1' = aux t1 context
+	q2' = aux t2 context
+      in
+	case (q1', q2') of
+	  (Nothing, _) -> Nothing
+	  (_, Nothing) -> Nothing
+	  (Just (Function q11 q12), Just q2) -> if (q11 == q2)
+						 then Just q12
+						 else Nothing
+	  (_, _) -> Nothing
+    aux True' _ = Just Boolean
+    aux False' _ = Just Boolean
+    aux (If t1 t2 t3) context=
+      case (aux t1 context) of
+	Just q1 -> if (q1 == Boolean)
+		   then case (aux t2 context, aux t3 context) of
+			  (Just q2, Just q3) -> if (q2 == q3)
+						then Just q2
+						else Nothing
+			  (_, _) -> Nothing
+		   else Nothing
+	Nothing -> Nothing
+
+    (t, context) = convert term
+  in
+    aux t context
+
+evaluate :: Term -> (Term, Type)
+evaluate term =
+  let
+    aux :: DeBrujinTerm -> DeBrujinTerm
+    aux (Application s t)
+      | not (isValue s) = Application (aux s) t
+      | not (isValue t) = Application s (aux t)
+      | otherwise = case s of
+		      Lambda x q e -> ((-1)-^-0) ((0 -:> ((1-^-0) t)) e)
+		      _ -> Application s t
+    aux (If r s t)
+      | predicate == True' = aux s
+      | predicate == False' = aux s
+      | otherwise = error "Non-boolean in test position!"
+      where predicate = aux r
+    aux x = x
+
+    (t, context) = convert term
+    q' = typeOf term
+  in
+    case q' of
+      Just q -> (q, aux t)
+      Nothing -> error "Not a well typed term!"
+\end{verbatim}
+% Emacs 24.5.1 (Org mode 8.2.10)
+\end{document}

@@ -1,9 +1,9 @@
 #+TITLE: Untyped Lambda Calculus
 #+AUTHOR: Nitin John Raj
 
-   Lambda calculus is a formal system in mathematical logic for expressing computation based on function abstraction and application using variable binding and substitution. It is a universal model of computation that can be used to simulate any single-taped Turing machine.
+Lambda calculus is a formal system in mathematical logic for expressing computation based on function abstraction and application using variable binding and substitution. It is a universal model of computation that can be used to simulate any single-taped Turing machine.
    
-   Lambda calculus was introduced by Alonzo Church as part of investigations into the Foundations of Mathematics. The original system was proved to be logically inconsistent. However, in 1936, Church isolated and published the portion relevant to computation in what is today called /untyped lambda calculus/.
+Lambda calculus was introduced by Alonzo Church as part of investigations into the Foundations of Mathematics. The original system was proved to be logically inconsistent. However, in 1936, Church isolated and published the portion relevant to computation in what is today called /untyped lambda calculus/.
 
 * Syntax
   The terms are represented by metavariable t and the values by metavariable v. Furthermore, we also use metavariable a to represent variable identifiers.
@@ -388,7 +388,7 @@
    We will use shifting in our definition of substitution.
 
 ** Definition: Substitution
-   Here, i adn k are metavariables for distinct terms.
+   Here, i and k are metavariables for distinct terms.
 
    \[[i \mapsto s]i = s\]
    \[[i \mapsto s]k = k\]
@@ -539,6 +539,8 @@
 
    *Lazy Evaluation:*
    
+   (Ask for help)
+
 ** DONE Write the rules for lambda calculus in big-step evaluation rules.
 
    B-APP_1: \[\frac{t_1 \Downarrow v_1}{t_1\ t_2 \Downarrow v_1\ t_2}\]
@@ -554,11 +556,11 @@
    \[fix = \lambda.\ (\lambda.\ 1\ (\lambda.\ (1\ 1)\ 0))\ (\lambda.\ 1\ (\lambda.\ (1\ 1)\ 0))\]
    \[foo = (\lambda.\ \lambda.\ 0)\ (\lambda.\ 0)\]
 
-** TODO Define a function \[removenames_\Gamma(t)\] that takes a term t such that \[FV(t) \in dom(\Gamma)\] and returns corresponding nameless term.
-   See [[./impl-de-Brujin][my implementation of de Brujin untyped lambda calculus]].
+** DONE Define a function \[removenames_\Gamma(t)\] that takes a term t such that \[FV(t) \in dom(\Gamma)\] and returns corresponding nameless term.
+   See my implementation in typed lambda calculus.
 
-** TODO Define a function \[restorenames_\Gamma(t)\] that takes a de Brujin term t that produces an ordinary term from it.
-   See [[./impl-de-Brujin][my implementation of de Brujin untyped lambda calculus]].
+** DONE Define a function \[restorenames_\Gamma(t)\] that takes a de Brujin term t that produces an ordinary term from it.
+   See my implementation in typed lambda calculus.
 
 ** DONE Evaluate:
 *** \[\uparrow^2(\lambda.\ \lambda.\ 1\ (0\ 2))\]
@@ -602,3 +604,4 @@
     \[= \lambda.\ [2 \mapsto 1]2\ [2 \mapsto 1]0\]
     \[= \lambda.\ 1\ 0\]
 
+    

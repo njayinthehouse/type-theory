@@ -1,0 +1,122 @@
+#+TITLE: Untyped Lambda Calculus, de Brujin Evaluation
+#+AUTHOR: Nitin John Raj
+
+* Concrete Syntax
+** Terms
+*** Documentation
+    The terms can represented by metavariable t. Here, metavariable x defines all valid variable identifiers.
+
+    t := x | \x. t | t t
+
+** Variable Identifiers
+*** Documentation
+    Variable identifiers in this implementation are limited to all strings.
+
+
+* Abstract Syntax
+** Terms
+*** Documentation
+    The nodes of the abstract syntax tree are populated by de Brujin terms. We use the metavariable <ast> to represent them.
+
+    <ast> := Variable <Int> | Lambda <ast> | Application <ast> <ast>
+
+    We also define some syntactic sugar here to make our lives simpler. Let's create constructors for these:
+
+    var <Int> = Variable <Int>
+    l_ <ast> = Lambda <ast>
+    <ast> * <ast> = Application <ast> <ast>
+
+*** Code
+#+NAME: ast
+#+BEGIN_SRC haskell
+  data Ast = Variable Int
+           | Lambda Ast
+           | Application Ast Ast
+
+  var :: Int -> Ast
+  var x = Variable x
+
+  l_ :: Ast -> Ast
+  l_ x = Lambda x
+
+  (*) :: Ast -> Ast -> Ast
+  (*) x y = Application x y
+#+END_SRC
+
+
+* Parser
+  We shall not concern ourselves with writing the parser at this time.
+
+
+* Naming Context
+** Documentation
+   The naming context is used to define a number for each free variable, to represent them using de Brujin indices. The naming context can be viewed as a mapping from integers to identifiers.
+
+** Code
+#+NAME: naming-context
+#+BEGIN_SRC haskell
+  buildContext :: List String -> Map Int String
+  buildContext fv = fromList ([0..] `zip` fv)
+#+END_SRC
+
+
+* Values
+** Documentation
+   The acceptable values are represented by metavariable v.
+
+   v := x | \x. t | x v
+
+** Code
+#+NAME: values
+#+BEGIN_SRC haskell
+  isValue :: Ast -> Bool
+  isValue (Variable _) = True
+  isValue (Lambda _) = True
+  isValue (Application (Lambda _) _) = False
+  isValue (Application x y) = (isValue x) && (isValue y)
+#+END_SRC
+
+
+* Shifting
+** Documentation
+   The d-place shift of a term t above cutoff c is defined as:
+
+   \[\uparrow^d_c(k) = k\], \[k < c\]
+   \[\uparrow^d_c(k) = k + d\], \[k \ge c\]
+   \[\uparrow^d_c(\lambda.\ t_1) = \lambda.\ \uparrow^d_{c + 1}(t_1)\]
+   \[\uparrow^d_c(t_1\ t_2) = \uparrow^d_c(t_1)\ \uparrow^d_c(t_2)\]
+   
+   We use shifting in our definition of substitution.
+
+** Coding
+#+NAME: shifting
+#+BEGIN_SRC haskell
+  data Shifting = Shift Int Int
+
+  (^) :: Int -> Int -> Shifting
+  d^c = Shift d c
+
+  (>-) :: Shifting -> Ast -> Ast
+  (Shift d c) >- (Variable k) | k < c = var k
+                              | otherwise = var (k + d)
+  (Shift d c) >- (Lambda t) = Lambda ((d ^ (c + 1)) >- t)
+  (Shift d c) >- (Application t1 t2) = Application ((d^c) >- t1) ((d^c) >- t2)
+#+END_SRC
+
+
+* Substitution
+** Documentation
+   Substitution is defined by the following rules:
+
+   Here, i and k are metavariables for distinct terms.
+
+   \[[i \mapsto s]i = s\]
+   \[[i \mapsto s]k = k\]
+   \[[i \mapsto s](\lambda.\ t_1) = \lambda.\ [i + 1 \mapsto s]\uparrow^1(t_1)\]
+   \[[i \mapsto s](t_1\ t_2) = ([i \mapsto s]t_1\ [i \mapsto s]t_2)\]
+
+** Code
+#+NAME: substitution
+#+BEGIN_SRC haskell
+
+#+END_SRC

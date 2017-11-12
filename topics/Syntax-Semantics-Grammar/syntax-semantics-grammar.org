@@ -6,7 +6,7 @@
   To elucidate this concept, let's define a quick untyped language and observe the different ways of expressing its syntax.
 
 ** Definition, by Context Free Grammar
- \[t ::=\]
+   \[t ::=\]
       \[true\] (constant true)
       \[false\] (constant false)
       \[if \hspace{1mm} t \hspace{1mm} then \hspace{1mm} t \hspace{1mm} else \hspace{1mm} t\] (conditional)
@@ -15,8 +15,8 @@
       \[pred \hspace{1mm} t\] (predecessor)
       \[iszero \hspace{1mm} t\] (zero test)
 
- The conventions used in this grammar is similar to the Backus-Naur Form of expressing grammars. Let's explain how this works.
-
+      The conventions used in this grammar is similar to the Backus-Naur Form of expressing grammars. Let's explain how this works.
+      
  Here, \[t\] is a /metavariable/ representing a /term/ of the language. \[t\] can be replaced by any of the expressions following it. Note that some of the right hand expressions also contain metavariable \[t\], which can be replaced even within those expressions according to the same rules. 
 
  Let's define this language more rigorously.

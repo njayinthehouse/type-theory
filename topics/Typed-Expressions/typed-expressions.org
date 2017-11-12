@@ -64,7 +64,7 @@ This chapter extends the language we developed in [[../Syntax-Semantics-Grammar/
 
     T-FALSE: \[false: Bool\]
 
-    T-IF: \[\frac{t_1, t_2, t_3: Bool}{if\ t_1\ then\ t_2\ else\ t_3: Bool}\]
+    T-IF: \[\frac{t_1: Bool, t_2, t_3: R}{if\ t_1\ then\ t_2\ else\ t_3: R}\]
 
     T-ZERO: \[0: Nat\]
 
@@ -119,12 +119,104 @@ This chapter extends the language we developed in [[../Syntax-Semantics-Grammar/
 
 
 * Theorem: Progress
+  \[\forall t \exists T (t: T \implies isValue\ t\ \vee \exists t' (t \to t'))\]
   (Prove by induction over the derivation of \[t : T\])
 
 
 * Theorem: Preservation
+  \[t: T \wedge t \to t' \implies t': T\]
   (Prove by induction over the derivation of \[t : T\])
        
 
 * Exercises
-** TODO Prove that every subterm of a well-typed term is well typed.
+** DONE Prove that every subterm of a well-typed term is well typed.
+   Consider a term t.
+
+   Case 1: t = true, false, 0
+   - t has no subterms, and t is well-typed 
+     - By inversion lemma, true: Boolean, false: Bool, 0: Nat
+
+   Case 2: t = if t1 then t2 else t3
+   - Let us assume t is well typed as R.
+   - Through inversion lemma, we know that t1: Bool, t2: R and t3: R.
+   - Thus, its subterms are well-typed.
+
+   Case 3: t = succ t1
+   - Let us assume that t is well typed as R.
+   - Through inversion lemma, we know that t1 is well-typed as Nat.
+   - Thus, its subterms are well-typed.
+
+   Case 4: t = pred t1
+   - Let us assume that t is well typed as R.
+   - Through inversion lemma, we know that t1 is well-typed as Nat.
+   - Thus, its subterms are well-typed.
+
+   Case 5: t = iszero t1
+   - Let us assume that t is well typed as R.
+   - Through inversion lemma, we know that t1 is well-typed as Nat.
+   - Thus, its subterms are well-typed.
+
+   Thus, in our language, if a term is well-typed, so are its subterms.
+
+** DONE Derive the preservation theorem using induction on evaluation rules.
+   Consider t, t' such that \[t \to t'\]. Also, let t: T.
+
+   Case 1: \[t \to t'\] is of the form E-IF_TRUE
+   - Then t is of the form `if true then t2 else t3`, t' = t2
+   - By T-IF, type(t) = type(t'), thus t': T
+
+   Case 2: \[t \to t'\] is of the form E-IF_FALSE
+   - Then t is of the form `if false then t2 else t3`, t' = t3
+   - By T-IF, type(t) = type(t'), thus t': T
+
+   Case 3: \[t \to t'\] is of the form E-IF
+   - Then t is of the form `if t1 then t2 else t3`, where \[t1 \to t1'\], and t' = if t1' then t2 else t3.
+   - By inversion lemma on t, t1: Bool, t2: T and t3: T.
+   - By our induction hypothesis, t1': Bool
+   - By definition of our typing rules on t', t1 and t2, t': T
+
+   Case 4: \[t \to t'\] is of the form E-SUCC
+   - Then t is of the form `succ t1`, where \[t1 \to t1'\], and t' = succ t1'
+   - By our language semantics, t: Nat if t1: Nat. Since t is well typed, we can assume that this is true.
+   - By our induction hypothesis on t1, t1': Nat
+   - By definition of our typing rules on t1', t': Nat
+
+   Case 5: \[t \to t'\] is of the form E-PRED_ZERO
+   - Then t = pred 0 and t' = 0
+   - Then t: Nat, t': Nat
+
+   Case 6: \[t \to t'\] is of the form E-PRED_SUCC
+   - Then t is of the form `pred (succ t1)`, t' = t1
+   - If t is well typed, T = Nat.
+   - Since subterms are well-typed, succ t1 is also well typed, and thus succ t1: Nat.
+   - Bt inversion lemma on succ t1, t1: nat. Thus t': Nat
+
+   Case 7: \[t \to t'\] is of the form E-PRED
+   - Then t is of the form `pred t1`, where \[t1 \to t1'\], and t' = pred t1'
+   - By our language semantics, t: Nat if t1: Nat. Since t is well typed, we can assume that this is true.
+   - By our induction hypothesis on t1, t1': Nat
+   - By definition of our typing rules on t1', t': Nat
+
+   Case 8: \[t \to t'\] is of the form E-ISZERO_ZERO
+   - Then t = iszero 0 and t' = true
+   - By defition of our language on iszero 0, T = Bool
+   - By definition of our language on true, t': Bool
+
+   Case 9: \[t \to t'\] is of the form E-ISZERO_SUCC
+   - Then t = iszero (succ t1) and t' = false
+   - By defition of our language on `iszero t2`, T = Bool
+   - By definition of our language on false, t': Bool
+
+   Case 10: \[t \to t'\] is of the form E-ISZERO
+   - Then t is of the form `iszero t1`, where \[t1 \to t1'\], and t' = iszero t1'
+   - By our language semantics, t: Bool if t1: Nat. Since t is well typed, we can assume that this is true.
+   - By our induction hypothesis on t1, t1': Nat
+   - By definition of our typing rules on t1', t': Bool
+
+** DONE Evaluation rule E-PRED_ZERO seems unintuitive. It might be better to leave the predecessor of 0 undefined. Can we achieve this by removing the rule?
+   No, removing the rule will just make terms of the form `pred 0` normal, yet not values of our language. Thus, evaluation might get stuck.
+
+** DONE Prove or disprove: \[t \to t' \wedge t': T \implies t: T\]
+   This may not always be true.
+
+   For example, we might have t = if true then 0 else false. Here, t' = 0, thus t': Nat. However, t is not well typed.
